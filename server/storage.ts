@@ -13,6 +13,7 @@ export interface IStorage {
   getDatasets(): Promise<Dataset[]>;
   getDataset(id: string): Promise<Dataset | undefined>;
   updateDatasetStatus(id: string, status: string, processedAt?: Date): Promise<void>;
+  deleteDataset(id: string): Promise<void>;
   
   // Booking operations
   createBookings(bookingData: InsertBooking[]): Promise<void>;
@@ -78,6 +79,14 @@ export class DatabaseStorage implements IStorage {
     await db.update(datasets)
       .set({ status, processedAt })
       .where(eq(datasets.id, id));
+  }
+
+  async deleteDataset(id: string): Promise<void> {
+    // Cascade delete: bookings, guests, analytics cache, then dataset
+    await db.delete(bookings).where(eq(bookings.datasetId, id));
+    await db.delete(guests).where(eq(guests.datasetId, id));
+    await db.delete(analyticsCache).where(eq(analyticsCache.datasetId, id));
+    await db.delete(datasets).where(eq(datasets.id, id));
   }
 
   // Booking operations

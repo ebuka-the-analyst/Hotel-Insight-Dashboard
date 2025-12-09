@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { ChartWidget } from "@/components/dashboard/ChartWidget";
+import { DatasetManager } from "@/components/dashboard/DatasetManager";
 import { AgentAvatar } from "@/components/ui/agent-avatar";
 import { GlassCard } from "@/components/ui/glass-card";
 import { DateRangeFilter, useDefaultDateRange, type DateRangeValue } from "@/components/ui/date-range-filter";
@@ -9,26 +10,12 @@ import {
   BedDouble, 
   CreditCard, 
   TrendingUp, 
-  Users, 
   Star,
   ArrowRight,
   Sparkles,
-  Loader2,
-  BarChart3,
-  Clock,
-  Calendar,
-  Building,
-  Percent,
-  ChevronDown
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { getKPIs, getTrends, getComprehensiveAnalytics, getDatasets } from "@/lib/api-client";
 import { useLocation } from "wouter";
@@ -124,24 +111,12 @@ export default function Dashboard() {
             <h1 className="text-4xl font-serif font-bold text-foreground" data-testid="text-dashboard-title">
               Dashboard
             </h1>
-            {datasets && datasets.length > 0 && (
-              <Select
-                value={selectedDatasetId || "all"}
-                onValueChange={(value) => setSelectedDatasetId(value === "all" ? undefined : value)}
-              >
-                <SelectTrigger className="w-[200px]" data-testid="select-dataset">
-                  <SelectValue placeholder="All Datasets" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Datasets</SelectItem>
-                  {datasets.map((dataset) => (
-                    <SelectItem key={dataset.id} value={dataset.id.toString()}>
-                      {dataset.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+            <DatasetManager 
+              datasets={datasets || []}
+              selectedDatasetId={selectedDatasetId}
+              onSelectDataset={setSelectedDatasetId}
+              isLoading={datasetsLoading}
+            />
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
             <p className="text-muted-foreground">

@@ -98,6 +98,19 @@ export async function getDatasets(): Promise<Dataset[]> {
   return response.json();
 }
 
+export async function deleteDataset(id: string): Promise<{ success: boolean }> {
+  const response = await fetch(`/api/datasets/${id}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: "Delete failed" }));
+    throw new Error(error.message || "Failed to delete dataset");
+  }
+
+  return response.json();
+}
+
 export interface DateRangeParams {
   startDate?: string;
   endDate?: string;

@@ -281,6 +281,27 @@ export async function registerRoutes(
     }
   });
 
+  // Delete dataset (with cascading cleanup)
+  app.delete("/api/datasets/:id", isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Verify dataset exists
+      const dataset = await storage.getDataset(id);
+      if (!dataset) {
+        return res.status(404).json({ error: "Dataset not found" });
+      }
+      
+      // Delete dataset and all related data
+      await storage.deleteDataset(id);
+      
+      res.json({ success: true, message: "Dataset deleted successfully" });
+    } catch (error: any) {
+      console.error("Delete dataset error:", error);
+      res.status(500).json({ error: error.message || "Failed to delete dataset" });
+    }
+  });
+
   // Get analytics KPIs
   app.get("/api/analytics/kpis", async (req, res) => {
     try {
