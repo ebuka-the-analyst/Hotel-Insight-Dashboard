@@ -1,9 +1,36 @@
-import { Bell, Search, User } from "lucide-react";
+import { Bell, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
+
+const DEFAULT_PROFILE = {
+  name: "Alex Morgan",
+  position: "General Manager",
+  avatarUrl: "https://github.com/shadcn.png"
+};
 
 export function Header() {
+  const [, setLocation] = useLocation();
+  const [profile, setProfile] = useState(() => {
+    const saved = localStorage.getItem("userProfile");
+    return saved ? JSON.parse(saved) : DEFAULT_PROFILE;
+  });
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      const saved = localStorage.getItem("userProfile");
+      if (saved) setProfile(JSON.parse(saved));
+    };
+    window.addEventListener("profileUpdated", handleUpdate);
+    return () => window.removeEventListener("profileUpdated", handleUpdate);
+  }, []);
+
+  const getInitials = (name: string) => {
+    return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+  };
+
   return (
     <header className="h-16 border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-10 px-6 flex items-center justify-between">
       <div className="flex items-center w-full max-w-md">
@@ -24,14 +51,18 @@ export function Header() {
         
         <div className="h-8 w-[1px] bg-border" />
         
-        <div className="flex items-center gap-3 pl-2">
+        <div 
+          className="flex items-center gap-3 pl-2 cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => setLocation("/settings")}
+          data-testid="button-profile"
+        >
           <div className="text-right hidden sm:block">
-            <p className="text-sm font-medium leading-none">Alex Morgan</p>
-            <p className="text-xs text-muted-foreground">General Manager</p>
+            <p className="text-sm font-medium leading-none">{profile.name}</p>
+            <p className="text-xs text-muted-foreground">{profile.position}</p>
           </div>
           <Avatar className="h-9 w-9 border border-border cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all">
-            <AvatarImage src="https://github.com/shadcn.png" />
-            <AvatarFallback>AM</AvatarFallback>
+            <AvatarImage src={profile.avatarUrl} />
+            <AvatarFallback>{getInitials(profile.name)}</AvatarFallback>
           </Avatar>
         </div>
       </div>

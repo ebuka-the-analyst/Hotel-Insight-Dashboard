@@ -1,8 +1,71 @@
 import { Layout } from "@/components/layout/Layout";
 import { GlassCard } from "@/components/ui/glass-card";
-import { Settings as SettingsIcon, Bell, Palette, Database } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Settings as SettingsIcon, Bell, Palette, Database, User, Camera, Save } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
+
+const DEFAULT_PROFILE = {
+  name: "Alex Morgan",
+  position: "General Manager",
+  avatarUrl: "https://github.com/shadcn.png"
+};
+
+export function useProfile() {
+  const [profile, setProfile] = useState(() => {
+    const saved = localStorage.getItem("userProfile");
+    return saved ? JSON.parse(saved) : DEFAULT_PROFILE;
+  });
+
+  const updateProfile = (newProfile: typeof DEFAULT_PROFILE) => {
+    localStorage.setItem("userProfile", JSON.stringify(newProfile));
+    setProfile(newProfile);
+    window.dispatchEvent(new Event("profileUpdated"));
+  };
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      const saved = localStorage.getItem("userProfile");
+      if (saved) setProfile(JSON.parse(saved));
+    };
+    window.addEventListener("profileUpdated", handleUpdate);
+    return () => window.removeEventListener("profileUpdated", handleUpdate);
+  }, []);
+
+  return { profile, updateProfile };
+}
 
 export default function Settings() {
+  const { toast } = useToast();
+  const [name, setName] = useState("");
+  const [position, setPosition] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("userProfile");
+    const profile = saved ? JSON.parse(saved) : DEFAULT_PROFILE;
+    setName(profile.name);
+    setPosition(profile.position);
+    setAvatarUrl(profile.avatarUrl);
+  }, []);
+
+  const handleSave = () => {
+    const newProfile = { name, position, avatarUrl };
+    localStorage.setItem("userProfile", JSON.stringify(newProfile));
+    window.dispatchEvent(new Event("profileUpdated"));
+    toast({
+      title: "Profile Updated",
+      description: "Your profile has been saved successfully.",
+    });
+  };
+
+  const getInitials = (name: string) => {
+    return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+  };
+
   return (
     <Layout>
       <div className="max-w-4xl mx-auto">
@@ -13,31 +76,111 @@ export default function Settings() {
           </p>
         </div>
 
-        <GlassCard className="p-8">
-          <div className="flex flex-col items-center justify-center min-h-[300px] text-center">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-              <SettingsIcon className="h-8 w-8 text-primary" />
+        <div className="space-y-6">
+          <GlassCard className="p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                <User className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">Profile Settings</h3>
+                <p className="text-sm text-muted-foreground">Update your name, position, and profile picture</p>
+              </div>
             </div>
-            <h3 className="text-xl font-semibold mb-2">Settings Coming Soon</h3>
-            <p className="text-muted-foreground max-w-md mb-6">
-              Customize your analytics experience with preferences, notifications, and data connections.
-            </p>
-            <div className="flex gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
+
+            <div className="grid md:grid-cols-[200px_1fr] gap-8">
+              <div className="flex flex-col items-center gap-4">
+                <Avatar className="h-32 w-32 border-4 border-primary/20">
+                  <AvatarImage src={avatarUrl} />
+                  <AvatarFallback className="text-2xl">{getInitials(name)}</AvatarFallback>
+                </Avatar>
+                <div className="text-center">
+                  <p className="font-medium">{name || "Your Name"}</p>
+                  <p className="text-sm text-muted-foreground">{position || "Your Position"}</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input
+                    id="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Enter your name"
+                    data-testid="input-profile-name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="position">Position / Title</Label>
+                  <Input
+                    id="position"
+                    value={position}
+                    onChange={(e) => setPosition(e.target.value)}
+                    placeholder="e.g., General Manager"
+                    data-testid="input-profile-position"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="avatar">Profile Picture URL</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="avatar"
+                      value={avatarUrl}
+                      onChange={(e) => setAvatarUrl(e.target.value)}
+                      placeholder="https://example.com/your-photo.jpg"
+                      data-testid="input-profile-avatar"
+                    />
+                    <Button variant="outline" size="icon" className="shrink-0">
+                      <Camera className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Enter a URL to your profile picture, or use a service like Gravatar
+                  </p>
+                </div>
+
+                <Button 
+                  onClick={handleSave} 
+                  className="bg-primary text-white hover:bg-primary/90 mt-4"
+                  data-testid="button-save-profile"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Profile
+                </Button>
+              </div>
+            </div>
+          </GlassCard>
+
+          <GlassCard className="p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-muted/50 rounded-full flex items-center justify-center">
+                <SettingsIcon className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">More Settings</h3>
+                <p className="text-sm text-muted-foreground">Additional configuration options coming soon</p>
+              </div>
+            </div>
+
+            <div className="flex gap-6 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg">
                 <Bell className="h-4 w-4" />
                 <span>Notifications</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg">
                 <Palette className="h-4 w-4" />
                 <span>Theme</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg">
                 <Database className="h-4 w-4" />
                 <span>Data Sources</span>
               </div>
             </div>
-          </div>
-        </GlassCard>
+          </GlassCard>
+        </div>
       </div>
     </Layout>
   );
