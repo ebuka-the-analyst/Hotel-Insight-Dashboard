@@ -210,12 +210,12 @@ export default function RevenueInsights() {
           </p>
         </div>
         
-        <Select value={selectedDatasetId || ""} onValueChange={(v) => setSelectedDatasetId(v || undefined)}>
+        <Select value={selectedDatasetId || "all"} onValueChange={(v) => setSelectedDatasetId(v === "all" ? undefined : v)}>
           <SelectTrigger className="w-[200px]" data-testid="select-dataset">
             <SelectValue placeholder="All datasets" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All datasets</SelectItem>
+            <SelectItem value="all">All datasets</SelectItem>
             {datasets?.map((d) => (
               <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
             ))}
