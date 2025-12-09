@@ -56,7 +56,7 @@ export default function Dashboard() {
               <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">New</span>
             </div>
             <p className="text-sm text-foreground/80 leading-relaxed">
-              Occupancy is trending <span className="text-green-600 font-semibold">up 12%</span> this weekend due to the local jazz festival. I recommend increasing ADR by £15 for remaining suites.
+              Occupancy is trending <span className="text-[hsl(var(--chart-4))] font-semibold">up 12%</span> this weekend due to the local jazz festival. I recommend increasing ADR by £15 for remaining suites.
             </p>
             <Button variant="link" className="p-0 h-auto text-primary text-xs mt-2 hover:text-primary/80">
               Apply Recommendation <ArrowRight className="h-3 w-3 ml-1" />
@@ -85,14 +85,14 @@ export default function Dashboard() {
           title="ADR" 
           value="£152.00" 
           change={-2.3} 
-          icon={<CreditCard className="h-6 w-6 text-green-500" />}
+          icon={<CreditCard className="h-6 w-6 text-[hsl(var(--chart-4))]" />}
           subtext="Average Daily Rate"
         />
         <KPICard 
           title="Guest Score" 
           value="9.2" 
           change={0.4} 
-          icon={<Star className="h-6 w-6 text-amber-500" />}
+          icon={<Star className="h-6 w-6 text-[hsl(var(--chart-5))]" />}
           subtext="Based on 42 reviews"
         />
       </div>
@@ -104,14 +104,14 @@ export default function Dashboard() {
           data={MOCK_OCCUPANCY_DATA} 
           dataKey="value" 
           category="day"
-          color="#ffa536" // Primary Orange
+          color="hsl(var(--primary))" // Primary Blue
         />
         <ChartWidget 
           title="Total Revenue (7 Days)" 
           data={MOCK_REVENUE_DATA} 
           dataKey="value" 
           category="day"
-          color="#11b6e9" // Secondary Blue
+          color="hsl(var(--secondary))" // Piper Orange
         />
       </div>
 

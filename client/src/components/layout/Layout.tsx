@@ -1,5 +1,6 @@
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
+import { ChatAssistant } from "@/components/chat/ChatAssistant";
 import { cn } from "@/lib/utils";
 
 interface LayoutProps {
@@ -21,6 +22,8 @@ export function Layout({ children }: LayoutProps) {
             {children}
           </div>
         </main>
+        
+        <ChatAssistant />
       </div>
     </div>
   );

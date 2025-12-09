@@ -70,102 +70,107 @@
 }
 
 /* 
-  Design System Spec:
-  Primary Orange: #ffa536 -> HSL 39 100% 60% (Adjusted for better text contrast if needed, but keeping close to spec)
-  Secondary Blue: #11b6e9 -> HSL 199 88% 49%
-  Background: #ffffff / #000000
+  Updated Brand Palette (Hyatt-inspired):
+  Primary Blue: #4B77A9 -> HSL 212 38% 48%
+  Nevada (Neutral): #6d6e71 -> HSL 225 2% 44%
+  Piper (Warm Accent): #bf5b20 -> HSL 22 71% 44%
+  Bahama Blue: #006e96 -> HSL 196 100% 29%
+  Olive: #8c8700 -> HSL 58 100% 27%
+  Tapestry: #ad5f7d -> HSL 337 30% 53%
+  Buddha Gold: #d79100 -> HSL 40 100% 42%
 */
 
 :root {
   --background: 0 0% 100%; /* #ffffff */
-  --foreground: 0 0% 9%; /* #171717 */
+  --foreground: 225 2% 20%; /* Darker Nevada for text */
 
-  --card: 0 0% 98%; /* #fafafa */
-  --card-foreground: 0 0% 9%;
+  --card: 0 0% 99%; /* Very slight off-white */
+  --card-foreground: 225 2% 20%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 9%;
+  --popover-foreground: 225 2% 20%;
 
-  --primary: 39 100% 54%; /* #ffa536 - Primary Orange */
-  --primary-foreground: 0 0% 10%; /* Dark text on bright orange */
+  --primary: 212 38% 48%; /* #4B77A9 - Primary Blue */
+  --primary-foreground: 0 0% 100%;
 
-  --secondary: 199 88% 49%; /* #11b6e9 - Secondary Blue */
+  --secondary: 22 71% 44%; /* #bf5b20 - Piper (Warm Accent) */
   --secondary-foreground: 0 0% 100%;
 
-  --muted: 0 0% 93%; /* #ededed */
-  --muted-foreground: 0 0% 45%; /* #737373 */
+  --muted: 225 2% 94%; /* Very light Nevada for backgrounds */
+  --muted-foreground: 225 2% 44%; /* #6d6e71 - Nevada */
 
-  --accent: 199 50% 96%; /* Very light blue tint */
-  --accent-foreground: 199 88% 40%;
+  --accent: 196 50% 96%; /* Very light Bahama Blue tint */
+  --accent-foreground: 196 100% 29%;
 
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
 
-  --border: 0 0% 90%; /* #e5e5e5 */
-  --input: 0 0% 90%;
-  --ring: 39 100% 54%;
+  --border: 225 2% 90%;
+  --input: 225 2% 90%;
+  --ring: 212 38% 48%;
 
   --radius: 0.5rem;
 
-  --chart-1: 39 100% 54%; /* Orange */
-  --chart-2: 199 88% 49%; /* Blue */
-  --chart-3: 151 55% 42%; /* Green (Growth) */
-  --chart-4: 262 83% 58%; /* Purple (Compliance) */
-  --chart-5: 43 96% 58%; /* Gold (Financial) */
+  /* Chart Colors mapped to the new palette */
+  --chart-1: 212 38% 48%; /* Primary Blue */
+  --chart-2: 22 71% 44%; /* Piper */
+  --chart-3: 196 100% 29%; /* Bahama Blue */
+  --chart-4: 58 100% 27%; /* Olive */
+  --chart-5: 40 100% 42%; /* Buddha Gold */
 
-  --sidebar: 0 0% 98%;
-  --sidebar-foreground: 0 0% 9%;
-  --sidebar-primary: 39 100% 54%;
-  --sidebar-primary-foreground: 0 0% 10%;
-  --sidebar-accent: 0 0% 93%;
-  --sidebar-accent-foreground: 0 0% 9%;
-  --sidebar-border: 0 0% 90%;
-  --sidebar-ring: 39 100% 54%;
+  --sidebar: 212 30% 98%; /* Very light blue tint for sidebar */
+  --sidebar-foreground: 212 38% 30%;
+  --sidebar-primary: 212 38% 48%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 212 38% 92%;
+  --sidebar-accent-foreground: 212 38% 48%;
+  --sidebar-border: 212 20% 90%;
+  --sidebar-ring: 212 38% 48%;
 }
 
 .dark {
-  --background: 0 0% 0%; /* #000000 */
-  --foreground: 0 0% 95%; /* #f2f2f2 */
+  --background: 225 10% 8%; /* Deep dark blue-grey */
+  --foreground: 225 5% 95%;
 
-  --card: 0 0% 9%; /* #171717 */
-  --card-foreground: 0 0% 95%;
+  --card: 225 10% 12%;
+  --card-foreground: 225 5% 95%;
 
-  --popover: 0 0% 9%;
-  --popover-foreground: 0 0% 95%;
+  --popover: 225 10% 12%;
+  --popover-foreground: 225 5% 95%;
 
-  --primary: 39 100% 54%;
-  --primary-foreground: 0 0% 10%;
+  --primary: 212 38% 58%; /* Lighter blue for dark mode */
+  --primary-foreground: 0 0% 100%;
 
-  --secondary: 199 88% 49%;
+  --secondary: 22 71% 54%; /* Lighter Piper for dark mode */
   --secondary-foreground: 0 0% 100%;
 
-  --muted: 0 0% 15%; /* #262626 */
-  --muted-foreground: 0 0% 65%; /* #a6a6a6 */
+  --muted: 225 5% 18%;
+  --muted-foreground: 225 5% 65%;
 
-  --accent: 199 30% 15%;
+  --accent: 212 30% 20%;
   --accent-foreground: 0 0% 98%;
 
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 0 0% 98%;
 
-  --border: 0 0% 16%; /* #292929 */
-  --input: 0 0% 16%;
-  --ring: 39 100% 54%;
+  --border: 225 5% 20%;
+  --input: 225 5% 20%;
+  --ring: 212 38% 58%;
 
-  --chart-1: 39 100% 54%;
-  --chart-2: 199 88% 49%;
-  --chart-3: 151 55% 42%;
-  --chart-4: 262 83% 58%;
-  --chart-5: 43 96% 58%;
+  --chart-1: 212 38% 58%;
+  --chart-2: 22 71% 54%;
+  --chart-3: 196 80% 45%;
+  --chart-4: 58 80% 40%;
+  --chart-5: 40 90% 55%;
 
-  --sidebar: 0 0% 11%; /* #1c1c1c */
-  --sidebar-foreground: 0 0% 95%;
-  --sidebar-primary: 39 100% 54%;
-  --sidebar-primary-foreground: 0 0% 10%;
-  --sidebar-accent: 0 0% 15%;
-  --sidebar-accent-foreground: 0 0% 95%;
-  --sidebar-border: 0 0% 16%;
-  --sidebar-ring: 39 100% 54%;
+  --sidebar: 225 10% 10%;
+  --sidebar-foreground: 225 5% 95%;
+  --sidebar-primary: 212 38% 58%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 225 5% 20%;
+  --sidebar-accent-foreground: 225 5% 95%;
+  --sidebar-border: 225 5% 20%;
+  --sidebar-ring: 212 38% 58%;
 }
 
 @layer base {
@@ -183,19 +188,25 @@
   }
   
   .glass-card {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.6);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px 0 rgba(17, 182, 233, 0.1);
+    border: 1px solid rgba(75, 119, 169, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(75, 119, 169, 0.05);
+  }
+  
+  .dark .glass-card {
+    background: rgba(30, 30, 35, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
   }
 
   .text-gradient {
-    background: linear-gradient(135deg, #11b6e9 0%, #ffa536 100%);
+    background: linear-gradient(135deg, #4B77A9 0%, #bf5b20 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
   
   .bg-gradient-brand {
-    background: linear-gradient(135deg, #11b6e9 0%, #ffa536 100%);
+    background: linear-gradient(135deg, #4B77A9 0%, #2a4d75 100%);
   }
 }

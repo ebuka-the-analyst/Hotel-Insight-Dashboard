@@ -29,8 +29,8 @@ export function KPICard({ title, value, change, icon, subtext }: KPICardProps) {
           <div className={cn(
             "flex items-center text-xs font-semibold px-2 py-0.5 rounded-full",
             isPositive 
-              ? "bg-green-500/10 text-green-600 dark:text-green-400" 
-              : "bg-red-500/10 text-red-600 dark:text-red-400"
+              ? "bg-[hsl(var(--chart-4))]/10 text-[hsl(var(--chart-4))]" 
+              : "bg-[hsl(var(--destructive))]/10 text-destructive"
           )}>
             {isPositive ? <ArrowUpRight className="h-3 w-3 mr-1" /> : <ArrowDownRight className="h-3 w-3 mr-1" />}
             {Math.abs(change)}%
