@@ -8,6 +8,9 @@ import Dashboard from "@/pages/Dashboard";
 import Upload from "@/pages/Upload";
 import Analysis from "@/pages/Analysis";
 import Research from "@/pages/Research";
+import Agents from "@/pages/Agents";
+import Team from "@/pages/Team";
+import Settings from "@/pages/Settings";
 
 function Router() {
   return (
@@ -17,6 +20,9 @@ function Router() {
       <Route path="/upload" component={Upload} />
       <Route path="/analysis" component={Analysis} />
       <Route path="/research" component={Research} />
+      <Route path="/agents" component={Agents} />
+      <Route path="/team" component={Team} />
+      <Route path="/settings" component={Settings} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>
