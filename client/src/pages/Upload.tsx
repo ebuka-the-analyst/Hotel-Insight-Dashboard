@@ -26,8 +26,23 @@ export default function Upload() {
   const uploadMutation = useMutation({
     mutationFn: uploadFile,
     onSuccess: (data) => {
-      setDetectedHeaders(data.headers);
-      setUploadStatus("mapping");
+      // Check if auto-mapping has high confidence and all required fields are mapped
+      if (data.autoMapping && 
+          data.autoMapping.confidence >= 0.8 && 
+          data.autoMapping.missingRequired.length === 0 &&
+          uploadedFile) {
+        // Auto-submit with the mapping - skip manual mapping step
+        setUploadStatus("uploading");
+        createDatasetMutation.mutate({
+          file: uploadedFile,
+          name: uploadedFile.name,
+          columnMapping: data.autoMapping.columnMapping,
+        });
+      } else {
+        // Fall back to manual mapping UI
+        setDetectedHeaders(data.headers);
+        setUploadStatus("mapping");
+      }
     },
     onError: (error) => {
       setErrorMessage(error instanceof Error ? error.message : "Upload failed");

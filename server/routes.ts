@@ -6,6 +6,7 @@ import * as XLSX from "xlsx";
 import { insertBookingSchema, insertDatasetSchema, type InsertBooking } from "@shared/schema";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
+import { autoMapColumns } from "./auto-mapper";
 
 const upload = multer({ 
   storage: multer.memoryStorage(),
@@ -36,11 +37,15 @@ export async function registerRoutes(
       // Get row count (excluding header)
       const rowCount = data.length - 1;
 
+      // Auto-map columns using the intelligent mapper
+      const autoMapping = autoMapColumns(headers.map(String));
+
       res.json({
         filename: req.file.originalname,
         headers,
         rowCount,
         fileSize: req.file.size,
+        autoMapping,
       });
     } catch (error: any) {
       console.error("Upload error:", error);

@@ -1,7 +1,19 @@
 import type { Booking, Dataset } from "@shared/schema";
 
+export interface AutoMappingResult {
+  columnMapping: Record<string, string>;
+  confidence: number;
+  unmappedHeaders: string[];
+  missingRequired: string[];
+  mappingDetails: { header: string; field: string; confidence: number }[];
+}
+
 export interface UploadResponse {
+  filename: string;
   headers: string[];
+  rowCount: number;
+  fileSize: number;
+  autoMapping: AutoMappingResult;
 }
 
 export interface CreateDatasetRequest {
