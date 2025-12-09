@@ -235,9 +235,11 @@ function parseDate(value: any): string {
   
   // If it's a Date object or Excel serial date
   if (typeof value === 'number') {
-    // Excel serial date (days since 1900-01-01)
-    const date = XLSX.SSF.parse_date_code(value);
-    return `${date.y}-${String(date.m).padStart(2, '0')}-${String(date.d).padStart(2, '0')}`;
+    // Excel serial date (days since 1899-12-30 with Excel's leap year bug)
+    // Excel incorrectly treats 1900 as a leap year, so we adjust for that
+    const excelEpoch = new Date(1899, 11, 30);
+    const date = new Date(excelEpoch.getTime() + value * 24 * 60 * 60 * 1000);
+    return date.toISOString().split('T')[0];
   }
   
   // Try to parse as date string
