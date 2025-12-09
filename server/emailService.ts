@@ -30,10 +30,14 @@ export async function sendOtpEmail(email: string, otp: string): Promise<{ succes
   try {
     const { client, fromEmail } = await getUncachableResendClient();
     
-    console.log(`[Email] Sending OTP to ${email} from ${fromEmail}`);
+    // Use Resend's test sender if the configured domain isn't verified
+    // In production, you should verify your own domain at https://resend.com/domains
+    const senderEmail = fromEmail.includes('@hyatt.com') ? 'onboarding@resend.dev' : fromEmail;
+    
+    console.log(`[Email] Sending OTP to ${email} from ${senderEmail}`);
     
     const response = await client.emails.send({
-      from: fromEmail,
+      from: senderEmail,
       to: email,
       subject: 'Your AutoInsight Login Code',
       html: `
