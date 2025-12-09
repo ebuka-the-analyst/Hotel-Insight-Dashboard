@@ -17,7 +17,7 @@ export function Layout({ children }: LayoutProps) {
         <div className="absolute -top-[100px] right-[10%] w-[400px] h-[400px] bg-secondary/5 rounded-full blur-3xl pointer-events-none z-0" />
         
         <Header />
-        <main className="flex-1 overflow-y-auto z-10 p-6 scroll-smooth">
+        <main className="flex-1 overflow-y-auto p-6 scroll-smooth">
           <div className="max-w-7xl mx-auto space-y-8 pb-10">
             {children}
           </div>

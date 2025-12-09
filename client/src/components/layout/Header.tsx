@@ -149,7 +149,7 @@ export function Header() {
   };
 
   return (
-    <header className="h-16 border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-10 px-6 flex items-center justify-between">
+    <header className="h-16 border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-50 px-6 flex items-center justify-between">
       <div className="flex items-center w-full max-w-md" ref={searchRef}>
         <form onSubmit={handleSearch} className="relative w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
