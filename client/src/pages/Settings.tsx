@@ -4,14 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Settings as SettingsIcon, Bell, Palette, Database, User, Camera, Save } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Settings as SettingsIcon, Bell, Palette, Database, User, Upload, Save, X } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 const DEFAULT_PROFILE = {
   name: "Alex Morgan",
   position: "General Manager",
-  avatarUrl: "https://github.com/shadcn.png"
+  avatarUrl: ""
 };
 
 export function useProfile() {
@@ -43,6 +43,7 @@ export default function Settings() {
   const [name, setName] = useState("");
   const [position, setPosition] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("userProfile");
@@ -51,6 +52,43 @@ export default function Settings() {
     setPosition(profile.position);
     setAvatarUrl(profile.avatarUrl);
   }, []);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid File",
+        description: "Please upload an image file (JPG, PNG, etc.)",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: "File Too Large",
+        description: "Please upload an image smaller than 2MB",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      setAvatarUrl(base64);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemovePhoto = () => {
+    setAvatarUrl("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   const handleSave = () => {
     const newProfile = { name, position, avatarUrl };
@@ -63,6 +101,7 @@ export default function Settings() {
   };
 
   const getInitials = (name: string) => {
+    if (!name) return "U";
     return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
   };
 
@@ -90,10 +129,23 @@ export default function Settings() {
 
             <div className="grid md:grid-cols-[200px_1fr] gap-8">
               <div className="flex flex-col items-center gap-4">
-                <Avatar className="h-32 w-32 border-4 border-primary/20">
-                  <AvatarImage src={avatarUrl} />
-                  <AvatarFallback className="text-2xl">{getInitials(name)}</AvatarFallback>
-                </Avatar>
+                <div className="relative">
+                  <Avatar className="h-32 w-32 border-4 border-primary/20">
+                    <AvatarImage src={avatarUrl} />
+                    <AvatarFallback className="text-2xl bg-primary/10 text-primary">{getInitials(name)}</AvatarFallback>
+                  </Avatar>
+                  {avatarUrl && (
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="absolute -top-2 -right-2 h-7 w-7 rounded-full"
+                      onClick={handleRemovePhoto}
+                      data-testid="button-remove-photo"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
                 <div className="text-center">
                   <p className="font-medium">{name || "Your Name"}</p>
                   <p className="text-sm text-muted-foreground">{position || "Your Position"}</p>
@@ -124,21 +176,29 @@ export default function Settings() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="avatar">Profile Picture URL</Label>
+                  <Label>Profile Picture</Label>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    id="avatar-upload"
+                    data-testid="input-profile-avatar-file"
+                  />
                   <div className="flex gap-2">
-                    <Input
-                      id="avatar"
-                      value={avatarUrl}
-                      onChange={(e) => setAvatarUrl(e.target.value)}
-                      placeholder="https://example.com/your-photo.jpg"
-                      data-testid="input-profile-avatar"
-                    />
-                    <Button variant="outline" size="icon" className="shrink-0">
-                      <Camera className="h-4 w-4" />
+                    <Button
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex-1"
+                      data-testid="button-upload-photo"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      {avatarUrl ? "Change Photo" : "Upload Photo"}
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Enter a URL to your profile picture, or use a service like Gravatar
+                    Upload a JPG or PNG image (max 2MB)
                   </p>
                 </div>
 
