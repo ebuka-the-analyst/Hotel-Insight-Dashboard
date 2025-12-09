@@ -264,7 +264,7 @@ export default function Upload() {
                     <div>
                       <p className="font-medium text-sm" data-testid={`text-dataset-name-${dataset.id}`}>{dataset.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {new Date(dataset.uploadedAt).toLocaleDateString()} • {dataset.status}
+                        {new Date(dataset.uploadedAt).toLocaleString()}
                       </p>
                     </div>
                   </div>
