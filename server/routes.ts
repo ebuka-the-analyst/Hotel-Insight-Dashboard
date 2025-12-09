@@ -94,24 +94,24 @@ export async function registerRoutes(
         const row = rows[i];
         
         try {
-          // Map columns based on user's mapping
+          // Map columns based on user's mapping - convert all values to correct types
           const bookingData: any = {
             datasetId: dataset.id,
-            bookingRef: row[mapping.bookingRef] || `REF-${i + 1}`,
-            guestName: row[mapping.guestName] || 'Unknown',
-            guestCountry: row[mapping.guestCountry] || null,
+            bookingRef: String(row[mapping.bookingRef] ?? `REF-${i + 1}`),
+            guestName: String(row[mapping.guestName] ?? 'Unknown'),
+            guestCountry: row[mapping.guestCountry] ? String(row[mapping.guestCountry]) : null,
             arrivalDate: parseDate(row[mapping.arrivalDate]),
             departureDate: parseDate(row[mapping.departureDate]),
             bookingDate: parseDate(row[mapping.bookingDate]),
-            roomType: row[mapping.roomType] || 'Standard',
-            roomNumber: row[mapping.roomNumber]?.toString() || null,
+            roomType: String(row[mapping.roomType] ?? 'Standard'),
+            roomNumber: row[mapping.roomNumber] ? String(row[mapping.roomNumber]) : null,
             adults: parseInt(row[mapping.adults]) || 1,
             children: parseInt(row[mapping.children]) || 0,
-            totalAmount: parseFloat(row[mapping.totalAmount]) || 0,
-            adr: parseFloat(row[mapping.adr]) || 0,
-            depositType: row[mapping.depositType] || null,
-            channel: row[mapping.channel] || 'Direct',
-            marketSegment: row[mapping.marketSegment] || null,
+            totalAmount: String(parseFloat(row[mapping.totalAmount]) || 0),
+            adr: String(parseFloat(row[mapping.adr]) || parseFloat(row['Rate']) || 0),
+            depositType: row[mapping.depositType] ? String(row[mapping.depositType]) : null,
+            channel: String(row[mapping.channel] ?? 'Direct'),
+            marketSegment: row[mapping.marketSegment] ? String(row[mapping.marketSegment]) : null,
             bookingStatus: String(row[mapping.bookingStatus] ?? 'Confirmed'),
             isCancelled: parseBoolean(row['Is Canceled']) || String(row[mapping.bookingStatus] ?? '').toLowerCase().includes('cancel'),
             leadTime: parseInt(row[mapping.leadTime]) || null,
