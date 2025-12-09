@@ -112,8 +112,8 @@ export async function registerRoutes(
             depositType: row[mapping.depositType] || null,
             channel: row[mapping.channel] || 'Direct',
             marketSegment: row[mapping.marketSegment] || null,
-            bookingStatus: row[mapping.bookingStatus] || 'Confirmed',
-            isCancelled: row[mapping.bookingStatus]?.toLowerCase().includes('cancel') || false,
+            bookingStatus: String(row[mapping.bookingStatus] ?? 'Confirmed'),
+            isCancelled: parseBoolean(row['Is Canceled']) || String(row[mapping.bookingStatus] ?? '').toLowerCase().includes('cancel'),
             leadTime: parseInt(row[mapping.leadTime]) || null,
             lengthOfStay: parseInt(row[mapping.lengthOfStay]) || calculateLOS(
               parseDate(row[mapping.arrivalDate]),
