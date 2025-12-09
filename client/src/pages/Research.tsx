@@ -26,7 +26,7 @@ import { cn } from "@/lib/utils";
 // Custom Components for PhD Visuals
 const RiskMatrix = () => {
   const leadTimes = ["0-3 Days", "3-7 Days", "7-30 Days", "30+ Days"];
-  const channels = ["Direct", "OTA", "Corporate"];
+  const channels = ["Direct", "Booking Websites", "Corporate"];
   
   return (
     <div className="grid grid-cols-4 gap-1">
@@ -62,7 +62,7 @@ export default function Research() {
   // Aggregate Data for Charts
   const channelPerformance = [
     { name: 'Direct', revenue: 450000, cost: 450000 * CHANNEL_COSTS.Direct, net: 450000 * (1 - CHANNEL_COSTS.Direct) },
-    { name: 'OTA', revenue: 850000, cost: 850000 * CHANNEL_COSTS.OTA, net: 850000 * (1 - CHANNEL_COSTS.OTA) },
+    { name: 'Booking Websites', revenue: 850000, cost: 850000 * CHANNEL_COSTS.OTA, net: 850000 * (1 - CHANNEL_COSTS.OTA) },
     { name: 'Corporate', revenue: 320000, cost: 320000 * CHANNEL_COSTS.Corporate, net: 320000 * (1 - CHANNEL_COSTS.Corporate) },
   ];
 
@@ -193,7 +193,7 @@ export default function Research() {
                 {[
                   { segment: "Business Elite", clv: "£12,400", trend: "+12%", color: "bg-blue-500" },
                   { segment: "Family Leisure", clv: "£4,200", trend: "+5%", color: "bg-green-500" },
-                  { segment: "OTA One-Time", clv: "£340", trend: "-2%", color: "bg-gray-400" },
+                  { segment: "Website Guests", clv: "£340", trend: "-2%", color: "bg-gray-400" },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                     <div className="flex items-center gap-3">
