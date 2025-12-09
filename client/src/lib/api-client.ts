@@ -636,7 +636,12 @@ export async function queryInsights(query: string, datasetId?: string): Promise<
     body: JSON.stringify({ query, datasetId }),
   });
   if (!response.ok) throw new Error("Failed to query insights");
-  return response.json();
+  const data = await response.json();
+  return {
+    answer: data.response || "No response available",
+    dataContext: data.metrics || {},
+    suggestedActions: data.suggestedActions || [],
+  };
 }
 
 export async function getInsights(datasetId?: string): Promise<AIInsight[]> {
