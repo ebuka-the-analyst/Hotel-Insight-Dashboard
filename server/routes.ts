@@ -285,7 +285,9 @@ export async function registerRoutes(
   app.get("/api/analytics/kpis", async (req, res) => {
     try {
       const datasetId = req.query.datasetId as string | undefined;
-      const analytics = await storage.getAnalytics(datasetId);
+      const startDate = req.query.startDate as string | undefined;
+      const endDate = req.query.endDate as string | undefined;
+      const analytics = await storage.getAnalytics(datasetId, startDate, endDate);
       res.json(analytics);
     } catch (error: any) {
       console.error("Get analytics error:", error);
@@ -297,7 +299,9 @@ export async function registerRoutes(
   app.get("/api/analytics/trends", async (req, res) => {
     try {
       const datasetId = req.query.datasetId as string | undefined;
-      const trends = await storage.getTrends(datasetId);
+      const startDate = req.query.startDate as string | undefined;
+      const endDate = req.query.endDate as string | undefined;
+      const trends = await storage.getTrends(datasetId, startDate, endDate);
       res.json(trends);
     } catch (error: any) {
       console.error("Get trends error:", error);
@@ -309,7 +313,9 @@ export async function registerRoutes(
   app.get("/api/analytics/channels", async (req, res) => {
     try {
       const datasetId = req.query.datasetId as string | undefined;
-      const channels = await storage.getChannelPerformance(datasetId);
+      const startDate = req.query.startDate as string | undefined;
+      const endDate = req.query.endDate as string | undefined;
+      const channels = await storage.getChannelPerformance(datasetId, startDate, endDate);
       res.json(channels);
     } catch (error: any) {
       console.error("Get channel performance error:", error);
@@ -321,7 +327,9 @@ export async function registerRoutes(
   app.get("/api/bookings", async (req, res) => {
     try {
       const datasetId = req.query.datasetId as string | undefined;
-      const bookings = await storage.getBookings(datasetId);
+      const startDate = req.query.startDate as string | undefined;
+      const endDate = req.query.endDate as string | undefined;
+      const bookings = await storage.getBookings(datasetId, startDate, endDate);
       res.json(bookings);
     } catch (error: any) {
       console.error("Get bookings error:", error);
@@ -333,10 +341,12 @@ export async function registerRoutes(
   app.get("/api/analytics/comprehensive", async (req, res) => {
     try {
       const datasetId = req.query.datasetId as string | undefined;
-      const bookings = await storage.getBookings(datasetId);
+      const startDate = req.query.startDate as string | undefined;
+      const endDate = req.query.endDate as string | undefined;
+      const bookings = await storage.getBookings(datasetId, startDate, endDate);
       
       if (!bookings || bookings.length === 0) {
-        return res.status(404).json({ error: "No booking data available" });
+        return res.status(404).json({ error: "No booking data available for selected period" });
       }
       
       const analytics = calculateComprehensiveAnalytics(bookings);

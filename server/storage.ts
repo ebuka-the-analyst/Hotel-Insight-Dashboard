@@ -16,13 +16,13 @@ export interface IStorage {
   
   // Booking operations
   createBookings(bookingData: InsertBooking[]): Promise<void>;
-  getBookings(datasetId?: string): Promise<Booking[]>;
+  getBookings(datasetId?: string, startDate?: string, endDate?: string): Promise<Booking[]>;
   getBookingsByDateRange(startDate: Date, endDate: Date, datasetId?: string): Promise<Booking[]>;
   
   // Analytics operations
-  getAnalytics(datasetId?: string): Promise<any>;
-  getTrends(datasetId?: string): Promise<any>;
-  getChannelPerformance(datasetId?: string): Promise<any>;
+  getAnalytics(datasetId?: string, startDate?: string, endDate?: string): Promise<any>;
+  getTrends(datasetId?: string, startDate?: string, endDate?: string): Promise<any>;
+  getChannelPerformance(datasetId?: string, startDate?: string, endDate?: string): Promise<any>;
   
   // Analytics cache operations
   getCachedAnalytics(datasetId: string, metricType: string): Promise<AnalyticsCache | undefined>;
@@ -92,9 +92,14 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getBookings(datasetId?: string): Promise<Booking[]> {
-    if (datasetId) {
-      return await db.select().from(bookings).where(eq(bookings.datasetId, datasetId));
+  async getBookings(datasetId?: string, startDate?: string, endDate?: string): Promise<Booking[]> {
+    const conditions: any[] = [];
+    if (datasetId) conditions.push(eq(bookings.datasetId, datasetId));
+    if (startDate) conditions.push(gte(bookings.arrivalDate, startDate));
+    if (endDate) conditions.push(lte(bookings.arrivalDate, endDate));
+    
+    if (conditions.length > 0) {
+      return await db.select().from(bookings).where(and(...conditions));
     }
     return await db.select().from(bookings);
   }
@@ -113,12 +118,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Analytics operations
-  async getAnalytics(datasetId?: string): Promise<any> {
-    const query = datasetId 
-      ? db.select().from(bookings).where(eq(bookings.datasetId, datasetId))
-      : db.select().from(bookings);
+  async getAnalytics(datasetId?: string, startDate?: string, endDate?: string): Promise<any> {
+    const conditions: any[] = [];
+    if (datasetId) conditions.push(eq(bookings.datasetId, datasetId));
+    if (startDate) conditions.push(gte(bookings.arrivalDate, startDate));
+    if (endDate) conditions.push(lte(bookings.arrivalDate, endDate));
     
-    const allBookings = await query;
+    const allBookings = conditions.length > 0
+      ? await db.select().from(bookings).where(and(...conditions))
+      : await db.select().from(bookings);
     
     if (allBookings.length === 0) {
       return this.getEmptyAnalytics();
@@ -159,12 +167,15 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async getTrends(datasetId?: string): Promise<any> {
-    const query = datasetId 
-      ? db.select().from(bookings).where(eq(bookings.datasetId, datasetId))
-      : db.select().from(bookings);
+  async getTrends(datasetId?: string, startDate?: string, endDate?: string): Promise<any> {
+    const conditions: any[] = [];
+    if (datasetId) conditions.push(eq(bookings.datasetId, datasetId));
+    if (startDate) conditions.push(gte(bookings.arrivalDate, startDate));
+    if (endDate) conditions.push(lte(bookings.arrivalDate, endDate));
     
-    const allBookings = await query;
+    const allBookings = conditions.length > 0
+      ? await db.select().from(bookings).where(and(...conditions))
+      : await db.select().from(bookings);
     
     if (allBookings.length === 0) {
       return { daily: [], weekly: [], monthly: [] };
@@ -201,12 +212,15 @@ export class DatabaseStorage implements IStorage {
     return { daily, weekly: [], monthly: [] };
   }
 
-  async getChannelPerformance(datasetId?: string): Promise<any> {
-    const query = datasetId 
-      ? db.select().from(bookings).where(eq(bookings.datasetId, datasetId))
-      : db.select().from(bookings);
+  async getChannelPerformance(datasetId?: string, startDate?: string, endDate?: string): Promise<any> {
+    const conditions: any[] = [];
+    if (datasetId) conditions.push(eq(bookings.datasetId, datasetId));
+    if (startDate) conditions.push(gte(bookings.arrivalDate, startDate));
+    if (endDate) conditions.push(lte(bookings.arrivalDate, endDate));
     
-    const allBookings = await query;
+    const allBookings = conditions.length > 0
+      ? await db.select().from(bookings).where(and(...conditions))
+      : await db.select().from(bookings);
     return this.groupByChannel(allBookings);
   }
 

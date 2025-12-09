@@ -98,10 +98,24 @@ export async function getDatasets(): Promise<Dataset[]> {
   return response.json();
 }
 
-export async function getKPIs(datasetId?: string): Promise<KPIData> {
-  const url = datasetId 
-    ? `/api/analytics/kpis?datasetId=${datasetId}`
-    : "/api/analytics/kpis";
+export interface DateRangeParams {
+  startDate?: string;
+  endDate?: string;
+}
+
+function buildQueryString(params: Record<string, string | undefined>): string {
+  const filtered = Object.entries(params).filter(([_, v]) => v !== undefined);
+  if (filtered.length === 0) return "";
+  return "?" + filtered.map(([k, v]) => `${k}=${encodeURIComponent(v!)}`).join("&");
+}
+
+export async function getKPIs(datasetId?: string, dateRange?: DateRangeParams): Promise<KPIData> {
+  const queryString = buildQueryString({ 
+    datasetId, 
+    startDate: dateRange?.startDate, 
+    endDate: dateRange?.endDate 
+  });
+  const url = `/api/analytics/kpis${queryString}`;
     
   const response = await fetch(url);
 
@@ -121,10 +135,13 @@ export async function getKPIs(datasetId?: string): Promise<KPIData> {
   };
 }
 
-export async function getTrends(datasetId?: string): Promise<{ daily: TrendData[]; weekly: TrendData[]; monthly: TrendData[] }> {
-  const url = datasetId 
-    ? `/api/analytics/trends?datasetId=${datasetId}`
-    : "/api/analytics/trends";
+export async function getTrends(datasetId?: string, dateRange?: DateRangeParams): Promise<{ daily: TrendData[]; weekly: TrendData[]; monthly: TrendData[] }> {
+  const queryString = buildQueryString({ 
+    datasetId, 
+    startDate: dateRange?.startDate, 
+    endDate: dateRange?.endDate 
+  });
+  const url = `/api/analytics/trends${queryString}`;
     
   const response = await fetch(url);
 
@@ -334,10 +351,13 @@ export interface ComprehensiveAnalytics {
   };
 }
 
-export async function getComprehensiveAnalytics(datasetId?: string): Promise<ComprehensiveAnalytics> {
-  const url = datasetId 
-    ? `/api/analytics/comprehensive?datasetId=${datasetId}`
-    : "/api/analytics/comprehensive";
+export async function getComprehensiveAnalytics(datasetId?: string, dateRange?: DateRangeParams): Promise<ComprehensiveAnalytics> {
+  const queryString = buildQueryString({ 
+    datasetId, 
+    startDate: dateRange?.startDate, 
+    endDate: dateRange?.endDate 
+  });
+  const url = `/api/analytics/comprehensive${queryString}`;
     
   const response = await fetch(url);
 
