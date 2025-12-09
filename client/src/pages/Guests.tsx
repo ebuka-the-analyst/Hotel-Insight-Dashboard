@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { DateRangeFilter, useDefaultDateRange, type DateRangeValue } from "@/components/ui/date-range-filter";
 import { 
   Users, 
   Search, 
@@ -40,6 +41,7 @@ import {
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { format } from "date-fns";
 import {
   BarChart,
   Bar,
@@ -88,13 +90,16 @@ async function fetchDatasets() {
   return res.json();
 }
 
-async function fetchGuestAnalytics(datasetId: string) {
-  const res = await fetch(`/api/guests/analytics/comprehensive?datasetId=${datasetId}`);
+async function fetchGuestAnalytics(datasetId: string, dateRange?: { startDate?: string; endDate?: string }) {
+  const params = new URLSearchParams({ datasetId });
+  if (dateRange?.startDate) params.append('startDate', dateRange.startDate);
+  if (dateRange?.endDate) params.append('endDate', dateRange.endDate);
+  const res = await fetch(`/api/guests/analytics/comprehensive?${params}`);
   if (!res.ok) throw new Error('Failed to fetch guest analytics');
   return res.json();
 }
 
-async function fetchGuests(datasetId: string, params: { limit?: number; offset?: number; search?: string; sortBy?: string; sortOrder?: string }) {
+async function fetchGuests(datasetId: string, params: { limit?: number; offset?: number; search?: string; sortBy?: string; sortOrder?: string; startDate?: string; endDate?: string }) {
   const query = new URLSearchParams({ datasetId, ...Object.fromEntries(Object.entries(params).filter(([_, v]) => v !== undefined).map(([k, v]) => [k, String(v)])) });
   const res = await fetch(`/api/guests?${query}`);
   if (!res.ok) throw new Error('Failed to fetch guests');
@@ -212,7 +217,13 @@ function StageBadge({ stage }: { stage: string }) {
 export default function Guests() {
   const [_, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
+  const [dateRange, setDateRange] = useState<DateRangeValue>(useDefaultDateRange());
   const queryClient = useQueryClient();
+
+  const dateRangeParams = {
+    startDate: format(dateRange.startDate, "yyyy-MM-dd"),
+    endDate: format(dateRange.endDate, "yyyy-MM-dd"),
+  };
   
   const { data: datasets, isLoading: datasetsLoading } = useQuery({
     queryKey: ["datasets"],
@@ -222,14 +233,14 @@ export default function Guests() {
   const activeDatasetId = datasets?.[0]?.id;
   
   const { data: analytics, isLoading: analyticsLoading, refetch: refetchAnalytics } = useQuery({
-    queryKey: ["guest-analytics", activeDatasetId],
-    queryFn: () => fetchGuestAnalytics(activeDatasetId),
+    queryKey: ["guest-analytics", activeDatasetId, dateRangeParams.startDate, dateRangeParams.endDate],
+    queryFn: () => fetchGuestAnalytics(activeDatasetId, dateRangeParams),
     enabled: !!activeDatasetId,
   });
   
   const { data: guestsData, isLoading: guestsLoading } = useQuery({
-    queryKey: ["guests", activeDatasetId, searchQuery],
-    queryFn: () => fetchGuests(activeDatasetId, { limit: 50, search: searchQuery }),
+    queryKey: ["guests", activeDatasetId, searchQuery, dateRangeParams.startDate, dateRangeParams.endDate],
+    queryFn: () => fetchGuests(activeDatasetId, { limit: 50, search: searchQuery, ...dateRangeParams }),
     enabled: !!activeDatasetId,
   });
   
@@ -285,7 +296,10 @@ export default function Guests() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-serif font-bold" data-testid="text-guests-title">Guest Analytics</h1>
-          <p className="text-muted-foreground">36 PhD-level metrics for guest performance analysis</p>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-1">
+            <p className="text-muted-foreground">36 PhD-level metrics for guest performance analysis</p>
+            <DateRangeFilter value={dateRange} onChange={setDateRange} />
+          </div>
         </div>
         <div className="flex gap-2">
           <Button 

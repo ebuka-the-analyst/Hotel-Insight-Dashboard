@@ -2,6 +2,7 @@ import { Layout } from "@/components/layout/Layout";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DateRangeFilter, useDefaultDateRange, type DateRangeValue } from "@/components/ui/date-range-filter";
 import { 
   ResponsiveContainer, 
   AreaChart, 
@@ -57,6 +58,7 @@ const RiskMatrix = () => {
 
 export default function Research() {
   const [timeRange, setTimeRange] = useState("year");
+  const [dateRange, setDateRange] = useState<DateRangeValue>(useDefaultDateRange());
   const data = useMemo(() => generateRealisticData(), []);
 
   // Aggregate Data for Charts
@@ -81,7 +83,10 @@ export default function Research() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-serif font-bold text-foreground">Advanced Insights</h1>
-            <p className="text-muted-foreground">Discover deeper patterns to help you make smarter decisions.</p>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-1">
+              <p className="text-muted-foreground">Discover deeper patterns to help you make smarter decisions.</p>
+              <DateRangeFilter value={dateRange} onChange={setDateRange} />
+            </div>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => setTimeRange("month")}>This Month</Button>

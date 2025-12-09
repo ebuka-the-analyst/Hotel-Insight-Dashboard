@@ -4,6 +4,7 @@ import { KPICard } from "@/components/dashboard/KPICard";
 import { ChartWidget } from "@/components/dashboard/ChartWidget";
 import { AgentAvatar } from "@/components/ui/agent-avatar";
 import { GlassCard } from "@/components/ui/glass-card";
+import { DateRangeFilter, useDefaultDateRange, type DateRangeValue } from "@/components/ui/date-range-filter";
 import { 
   BedDouble, 
   CreditCard, 
@@ -31,10 +32,17 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { getKPIs, getTrends, getComprehensiveAnalytics, getDatasets } from "@/lib/api-client";
 import { useLocation } from "wouter";
+import { format } from "date-fns";
 
 export default function Dashboard() {
   const [_, setLocation] = useLocation();
   const [selectedDatasetId, setSelectedDatasetId] = useState<string | undefined>(undefined);
+  const [dateRange, setDateRange] = useState<DateRangeValue>(useDefaultDateRange());
+
+  const dateRangeParams = {
+    startDate: format(dateRange.startDate, "yyyy-MM-dd"),
+    endDate: format(dateRange.endDate, "yyyy-MM-dd"),
+  };
 
   const { data: datasets, isLoading: datasetsLoading } = useQuery({
     queryKey: ["datasets"],
@@ -42,18 +50,18 @@ export default function Dashboard() {
   });
 
   const { data: kpis, isLoading: kpisLoading, error: kpisError } = useQuery({
-    queryKey: ["kpis", selectedDatasetId],
-    queryFn: () => getKPIs(selectedDatasetId),
+    queryKey: ["kpis", selectedDatasetId, dateRangeParams.startDate, dateRangeParams.endDate],
+    queryFn: () => getKPIs(selectedDatasetId, dateRangeParams),
   });
 
   const { data: trendsData, isLoading: trendsLoading } = useQuery({
-    queryKey: ["trends", selectedDatasetId],
-    queryFn: () => getTrends(selectedDatasetId),
+    queryKey: ["trends", selectedDatasetId, dateRangeParams.startDate, dateRangeParams.endDate],
+    queryFn: () => getTrends(selectedDatasetId, dateRangeParams),
   });
 
   const { data: fullAnalytics } = useQuery({
-    queryKey: ["comprehensive-analytics", selectedDatasetId],
-    queryFn: () => getComprehensiveAnalytics(selectedDatasetId),
+    queryKey: ["comprehensive-analytics", selectedDatasetId, dateRangeParams.startDate, dateRangeParams.endDate],
+    queryFn: () => getComprehensiveAnalytics(selectedDatasetId, dateRangeParams),
   });
 
   const selectedDataset = datasets?.find(d => d.id === selectedDatasetId);
@@ -135,9 +143,12 @@ export default function Dashboard() {
               </Select>
             )}
           </div>
-          <p className="text-muted-foreground">
-            Here's your executive summary for <span className="font-semibold text-foreground">{selectedDataset?.name || "Hyatt Place"}</span>.
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+            <p className="text-muted-foreground">
+              Here's your executive summary for <span className="font-semibold text-foreground">{selectedDataset?.name || "Hyatt Place"}</span>.
+            </p>
+            <DateRangeFilter value={dateRange} onChange={setDateRange} />
+          </div>
         </div>
         
         <GlassCard className="flex items-start gap-4 p-4 max-w-xl w-full bg-primary/5 border-primary/10">

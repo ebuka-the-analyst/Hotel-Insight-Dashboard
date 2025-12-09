@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { DateRangeFilter, useDefaultDateRange, type DateRangeValue } from "@/components/ui/date-range-filter";
 import { 
   Download, 
   TrendingUp, 
@@ -29,6 +31,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { getComprehensiveAnalytics } from "@/lib/api-client";
 import { useLocation } from "wouter";
+import { format } from "date-fns";
 import {
   BarChart,
   Bar,
@@ -120,10 +123,16 @@ function HealthScoreRing({ score, label }: { score: number; label: string }) {
 
 export default function Analysis() {
   const [_, setLocation] = useLocation();
+  const [dateRange, setDateRange] = useState<DateRangeValue>(useDefaultDateRange());
+
+  const dateRangeParams = {
+    startDate: format(dateRange.startDate, "yyyy-MM-dd"),
+    endDate: format(dateRange.endDate, "yyyy-MM-dd"),
+  };
   
   const { data: analytics, isLoading, error } = useQuery({
-    queryKey: ["comprehensive-analytics"],
-    queryFn: () => getComprehensiveAnalytics(),
+    queryKey: ["comprehensive-analytics", dateRangeParams.startDate, dateRangeParams.endDate],
+    queryFn: () => getComprehensiveAnalytics(undefined, dateRangeParams),
   });
 
   if (isLoading) {
@@ -182,7 +191,10 @@ export default function Analysis() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-serif font-bold" data-testid="text-analysis-title">Comprehensive Analytics</h1>
-          <p className="text-muted-foreground">70+ metrics for PhD-level hotel performance analysis</p>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-1">
+            <p className="text-muted-foreground">70+ metrics for PhD-level hotel performance analysis</p>
+            <DateRangeFilter value={dateRange} onChange={setDateRange} />
+          </div>
         </div>
         <Button size="sm" className="bg-primary text-white hover:bg-primary/90" data-testid="button-export">
           <Download className="h-4 w-4 mr-2" /> Export Report
