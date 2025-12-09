@@ -13,6 +13,7 @@ import { extractGuestsFromBookings, calculateGuestAnalytics } from "./guest-anal
 import { revenueInsightsService } from "./revenue-insights-service";
 import { aiPricingService } from "./ai-pricing-service";
 import { emailReportsService } from "./email-reports-service";
+import { aiInsightsService } from "./ai-insights-service";
 import { insertReportSubscriptionSchema } from "@shared/schema";
 
 // Simple in-memory rate limiter for login
@@ -869,6 +870,124 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("Process scheduled reports error:", error);
       res.status(500).json({ error: error.message || "Failed to process scheduled reports" });
+    }
+  });
+
+  // ============================================
+  // AI INSIGHTS & NOTIFICATIONS API
+  // ============================================
+
+  // Query data with natural language
+  app.post('/api/insights/query', async (req, res) => {
+    try {
+      const { query, datasetId } = req.body;
+      if (!query) {
+        return res.status(400).json({ message: "Query is required" });
+      }
+      const result = await aiInsightsService.queryData(query, datasetId);
+      res.json(result);
+    } catch (error) {
+      console.error("Error querying data:", error);
+      res.status(500).json({ message: "Failed to query data" });
+    }
+  });
+
+  // Generate AI insights for a dataset
+  app.post('/api/insights/generate/:datasetId', async (req, res) => {
+    try {
+      const { datasetId } = req.params;
+      const insights = await aiInsightsService.generateDetailedInsights(datasetId);
+      await aiInsightsService.saveInsights(insights);
+      const saved = await aiInsightsService.getInsights(datasetId);
+      res.json(saved);
+    } catch (error) {
+      console.error("Error generating insights:", error);
+      res.status(500).json({ message: "Failed to generate insights" });
+    }
+  });
+
+  // Get AI insights
+  app.get('/api/insights', async (req, res) => {
+    try {
+      const datasetId = req.query.datasetId as string | undefined;
+      const insights = await aiInsightsService.getInsights(datasetId);
+      res.json(insights);
+    } catch (error) {
+      console.error("Error fetching insights:", error);
+      res.status(500).json({ message: "Failed to fetch insights" });
+    }
+  });
+
+  // Get single insight by ID
+  app.get('/api/insights/:id', async (req, res) => {
+    try {
+      const insight = await aiInsightsService.getInsightById(req.params.id);
+      if (!insight) {
+        return res.status(404).json({ message: "Insight not found" });
+      }
+      res.json(insight);
+    } catch (error) {
+      console.error("Error fetching insight:", error);
+      res.status(500).json({ message: "Failed to fetch insight" });
+    }
+  });
+
+  // Get notifications
+  app.get('/api/notifications', async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 20;
+      const notifications = await aiInsightsService.getNotifications(limit);
+      res.json(notifications);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+
+  // Get unread notification count
+  app.get('/api/notifications/unread-count', async (req, res) => {
+    try {
+      const count = await aiInsightsService.getUnreadCount();
+      res.json({ count });
+    } catch (error) {
+      console.error("Error fetching unread count:", error);
+      res.status(500).json({ message: "Failed to fetch unread count" });
+    }
+  });
+
+  // Generate notifications for a dataset
+  app.post('/api/notifications/generate/:datasetId', async (req, res) => {
+    try {
+      const { datasetId } = req.params;
+      const notifs = await aiInsightsService.generateNotifications(datasetId);
+      await aiInsightsService.saveNotifications(notifs);
+      const all = await aiInsightsService.getNotifications();
+      res.json(all);
+    } catch (error) {
+      console.error("Error generating notifications:", error);
+      res.status(500).json({ message: "Failed to generate notifications" });
+    }
+  });
+
+  // Mark notification as read
+  app.patch('/api/notifications/:id/read', async (req, res) => {
+    try {
+      await aiInsightsService.markNotificationRead(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking notification read:", error);
+      res.status(500).json({ message: "Failed to mark notification read" });
+    }
+  });
+
+  // Mark all notifications as read
+  app.post('/api/notifications/mark-all-read', async (req, res) => {
+    try {
+      await aiInsightsService.markAllNotificationsRead();
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking all notifications read:", error);
+      res.status(500).json({ message: "Failed to mark all notifications read" });
     }
   });
 

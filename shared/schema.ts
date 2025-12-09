@@ -226,6 +226,47 @@ export const cancellationAlerts = pgTable("cancellation_alerts", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Notifications - system alerts and insights for users
+export const notifications = pgTable("notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  datasetId: varchar("dataset_id"),
+  type: text("type").notNull(), // insight, alert, system, pricing, forecast
+  severity: text("severity").default("info"), // info, warning, critical, success
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  metadata: jsonb("metadata"), // Additional context like booking IDs, metrics
+  isRead: boolean("is_read").default(false),
+  actionUrl: text("action_url"), // Where to navigate on click
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// AI Generated Insights - detailed analytics insights
+export const aiInsights = pgTable("ai_insights", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  datasetId: varchar("dataset_id").notNull(),
+  category: text("category").notNull(), // revenue, occupancy, guests, risk, pricing, operations
+  title: text("title").notNull(),
+  summary: text("summary").notNull(),
+  detailedAnalysis: text("detailed_analysis").notNull(),
+  metrics: jsonb("metrics").notNull(), // Key metrics with values
+  recommendations: jsonb("recommendations").notNull(), // Action items
+  impact: text("impact").notNull(), // high, medium, low
+  confidence: integer("confidence").notNull(), // 0-100
+  trend: text("trend"), // up, down, stable
+  agentName: text("agent_name").notNull(), // Nova, Sterling, Atlas, Sage
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// AI Query History - track user queries for context
+export const aiQueries = pgTable("ai_queries", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  datasetId: varchar("dataset_id"),
+  query: text("query").notNull(),
+  response: text("response").notNull(),
+  metrics: jsonb("metrics"), // Supporting data used in response
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Email Report Subscriptions - user preferences for automated reports
 export const reportSubscriptions = pgTable("report_subscriptions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -273,6 +314,21 @@ export const insertReportSubscriptionSchema = createInsertSchema(reportSubscript
   updatedAt: true,
 });
 
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAiInsightSchema = createInsertSchema(aiInsights).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAiQuerySchema = createInsertSchema(aiQueries).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertDatasetSchema = createInsertSchema(datasets).omit({
   id: true,
   uploadedAt: true,
@@ -317,3 +373,12 @@ export type InsertCancellationAlert = z.infer<typeof insertCancellationAlertSche
 
 export type ReportSubscription = typeof reportSubscriptions.$inferSelect;
 export type InsertReportSubscription = z.infer<typeof insertReportSubscriptionSchema>;
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+
+export type AiInsight = typeof aiInsights.$inferSelect;
+export type InsertAiInsight = z.infer<typeof insertAiInsightSchema>;
+
+export type AiQuery = typeof aiQueries.$inferSelect;
+export type InsertAiQuery = z.infer<typeof insertAiQuerySchema>;
