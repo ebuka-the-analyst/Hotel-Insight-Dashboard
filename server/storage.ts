@@ -1,19 +1,12 @@
 import { db } from "./db";
-import { bookings, datasets, analyticsCache, users, emailOtps, type Booking, type InsertBooking, type Dataset, type InsertDataset, type AnalyticsCache, type InsertAnalyticsCache, type User, type UpsertUser, type EmailOtp, type InsertEmailOtp } from "@shared/schema";
-import { eq, sql, and, gte, lte, desc, lt } from "drizzle-orm";
+import { bookings, datasets, analyticsCache, users, type Booking, type InsertBooking, type Dataset, type InsertDataset, type AnalyticsCache, type InsertAnalyticsCache, type User, type UpsertUser } from "@shared/schema";
+import { eq, sql, and, gte, lte, desc } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
-  upsertUser(user: UpsertUser): Promise<User>;
-  
-  // OTP operations
-  createOtp(data: InsertEmailOtp): Promise<EmailOtp>;
-  getValidOtp(email: string): Promise<EmailOtp | undefined>;
-  markOtpUsed(id: string): Promise<void>;
-  incrementOtpAttempts(id: string): Promise<void>;
-  cleanupExpiredOtps(): Promise<void>;
+  createUser(user: UpsertUser): Promise<User>;
   
   // Dataset operations
   createDataset(data: InsertDataset): Promise<Dataset>;
@@ -37,61 +30,20 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  // User operations (required for Replit Auth)
+  // User operations
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
   }
 
-  async upsertUser(userData: UpsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          ...userData,
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
+  async createUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(userData).returning();
     return user;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.email, email));
     return user;
-  }
-
-  // OTP operations
-  async createOtp(data: InsertEmailOtp): Promise<EmailOtp> {
-    const [otp] = await db.insert(emailOtps).values(data).returning();
-    return otp;
-  }
-
-  async getValidOtp(email: string): Promise<EmailOtp | undefined> {
-    const [otp] = await db.select().from(emailOtps)
-      .where(and(
-        eq(emailOtps.email, email),
-        eq(emailOtps.used, false),
-        gte(emailOtps.expiresAt, new Date()),
-        lt(emailOtps.attempts, 3)
-      ))
-      .orderBy(desc(emailOtps.createdAt))
-      .limit(1);
-    return otp;
-  }
-
-  async markOtpUsed(id: string): Promise<void> {
-    await db.update(emailOtps).set({ used: true }).where(eq(emailOtps.id, id));
-  }
-
-  async incrementOtpAttempts(id: string): Promise<void> {
-    await db.update(emailOtps).set({ attempts: sql`attempts + 1` }).where(eq(emailOtps.id, id));
-  }
-
-  async cleanupExpiredOtps(): Promise<void> {
-    await db.delete(emailOtps).where(lt(emailOtps.expiresAt, new Date()));
   }
 
   // Dataset operations

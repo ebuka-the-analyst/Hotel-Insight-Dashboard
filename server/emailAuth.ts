@@ -30,16 +30,16 @@ export function setupEmailAuth(app: Express) {
   app.use(getSession());
 }
 
-export function generateOtp(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+export function hashPassword(password: string): string {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('hex');
+  return `${salt}:${hash}`;
 }
 
-export function hashOtp(otp: string): string {
-  return crypto.createHash('sha256').update(otp).digest('hex');
-}
-
-export function verifyOtpHash(otp: string, hash: string): boolean {
-  return hashOtp(otp) === hash;
+export function verifyPassword(password: string, storedHash: string): boolean {
+  const [salt, hash] = storedHash.split(':');
+  const verifyHash = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('hex');
+  return hash === verifyHash;
 }
 
 export const isAuthenticated: RequestHandler = (req, res, next) => {

@@ -2,65 +2,35 @@ import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { TrendingUp, Users, Shield, ArrowRight, LineChart, PieChart, Mail, Loader2 } from "lucide-react";
+import { TrendingUp, Users, Shield, ArrowRight, LineChart, PieChart, Mail, Lock, Loader2 } from "lucide-react";
 import { useState } from "react";
 import hyattLogo from "@assets/Hyatt_Place_logo.svg_1765284683778.png";
 
 export default function Landing() {
   const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
-  const [step, setStep] = useState<"email" | "otp">("email");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleRequestOtp = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) {
-      setError("Please enter your email address");
+    if (!email || !password) {
+      setError("Please enter your email and password");
       return;
     }
     setIsLoading(true);
     setError("");
     
     try {
-      const res = await fetch("/api/auth/request-otp", {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, password }),
       });
       
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.message || "Failed to send verification code");
-      }
-      
-      setStep("otp");
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!otp) {
-      setError("Please enter the verification code");
-      return;
-    }
-    setIsLoading(true);
-    setError("");
-    
-    try {
-      const res = await fetch("/api/auth/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp }),
-      });
-      
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || "Invalid verification code");
+        throw new Error(data.message || "Invalid email or password");
       }
       
       window.location.href = "/";
@@ -118,9 +88,7 @@ export default function Landing() {
             <div className="text-center mb-6">
               <h2 className="text-2xl font-serif font-bold mb-2">Manager Sign In</h2>
               <p className="text-muted-foreground text-sm">
-                {step === "email" 
-                  ? "Enter your email to receive a verification code" 
-                  : "Enter the 6-digit code sent to your email"}
+                Enter your credentials provided by HR
               </p>
             </div>
 
@@ -130,84 +98,56 @@ export default function Landing() {
               </div>
             )}
 
-            {step === "email" ? (
-              <form onSubmit={handleRequestOtp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="manager@hyattplace.com"
-                      className="pl-10"
-                      data-testid="input-email"
-                    />
-                  </div>
-                </div>
-
-                <Button 
-                  type="submit"
-                  className="w-full bg-primary hover:bg-primary/90 text-white"
-                  disabled={isLoading}
-                  data-testid="button-request-otp"
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : null}
-                  Send Verification Code
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </form>
-            ) : (
-              <form onSubmit={handleVerifyOtp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="otp">Verification Code</Label>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    id="otp"
-                    type="text"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                    placeholder="000000"
-                    className="text-center text-2xl tracking-[0.5em] font-mono"
-                    maxLength={6}
-                    data-testid="input-otp"
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="manager@hyattplace.com"
+                    className="pl-10"
+                    data-testid="input-email"
                   />
-                  <p className="text-xs text-muted-foreground text-center">
-                    Code sent to {email}
-                  </p>
                 </div>
+              </div>
 
-                <Button 
-                  type="submit"
-                  className="w-full bg-primary hover:bg-primary/90 text-white"
-                  disabled={isLoading || otp.length !== 6}
-                  data-testid="button-verify-otp"
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : null}
-                  Verify & Sign In
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    className="pl-10"
+                    data-testid="input-password"
+                  />
+                </div>
+              </div>
 
-                <Button 
-                  type="button"
-                  variant="ghost"
-                  className="w-full"
-                  onClick={() => {
-                    setStep("email");
-                    setOtp("");
-                    setError("");
-                  }}
-                  data-testid="button-back-email"
-                >
-                  Use different email
-                </Button>
-              </form>
-            )}
+              <Button 
+                type="submit"
+                className="w-full bg-primary hover:bg-primary/90 text-white"
+                disabled={isLoading}
+                data-testid="button-login"
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : null}
+                Sign In
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </form>
+
+            <p className="text-xs text-muted-foreground text-center mt-4">
+              Contact HR if you need access or forgot your password
+            </p>
           </GlassCard>
         </div>
 
@@ -217,7 +157,7 @@ export default function Landing() {
             <h2 className="text-2xl font-serif font-bold mb-3">Built for Hyatt Place Managers</h2>
             <p className="text-muted-foreground max-w-xl mx-auto">
               This analytics dashboard is designed specifically for hotel management teams. 
-              Sign in with your hotel email to access your personalized insights.
+              Sign in with your credentials to access your personalized insights.
             </p>
           </GlassCard>
         </div>
