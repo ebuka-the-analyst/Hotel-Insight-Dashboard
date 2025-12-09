@@ -179,38 +179,55 @@ export function Header() {
           )}
           
           {showSearchResult && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-900 border border-border rounded-xl shadow-2xl z-[100] max-h-[400px] overflow-y-auto" style={{ minWidth: '400px' }}>
-              {isSearching ? (
-                <div className="p-6 flex items-center justify-center gap-2">
-                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                  <span className="text-sm text-muted-foreground">Analyzing your data...</span>
-                </div>
-              ) : searchResult ? (
-                <div className="p-5 space-y-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shrink-0 shadow-md">
+            <>
+              <div 
+                className="fixed inset-0 bg-black/50 z-[100]" 
+                onClick={() => setShowSearchResult(false)}
+              />
+              <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-xl bg-white dark:bg-zinc-900 border border-border rounded-2xl shadow-2xl z-[101] max-h-[80vh] overflow-y-auto">
+                <div className="sticky top-0 bg-white dark:bg-zinc-900 border-b border-border px-5 py-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shadow-md">
                       <span className="text-lg">✨</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-primary mb-1">AI Response</p>
-                      <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{searchResult.answer}</p>
+                    <div>
+                      <p className="font-semibold text-foreground">AI Assistant</p>
+                      <p className="text-xs text-muted-foreground">Analyzing your hotel data</p>
                     </div>
                   </div>
-                  {searchResult.suggestedActions && searchResult.suggestedActions.length > 0 && (
-                    <div className="pt-3 border-t border-border">
-                      <p className="text-xs text-muted-foreground mb-2">Suggested actions:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {searchResult.suggestedActions.map((action, i) => (
-                          <span key={i} className="text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-full font-medium">
-                            {action}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  <button
+                    onClick={() => setShowSearchResult(false)}
+                    className="p-2 hover:bg-muted rounded-full transition-colors"
+                  >
+                    <X className="h-5 w-5 text-muted-foreground" />
+                  </button>
                 </div>
-              ) : null}
-            </div>
+                {isSearching ? (
+                  <div className="p-8 flex flex-col items-center justify-center gap-3">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <span className="text-sm text-muted-foreground">Analyzing your data...</span>
+                  </div>
+                ) : searchResult ? (
+                  <div className="p-5 space-y-4">
+                    <div className="bg-muted/30 rounded-xl p-4">
+                      <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{searchResult.answer}</p>
+                    </div>
+                    {searchResult.suggestedActions && searchResult.suggestedActions.length > 0 && (
+                      <div className="pt-3 border-t border-border">
+                        <p className="text-xs text-muted-foreground mb-2">Suggested actions:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {searchResult.suggestedActions.map((action, i) => (
+                            <span key={i} className="text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-full font-medium">
+                              {action}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            </>
           )}
         </form>
       </div>
