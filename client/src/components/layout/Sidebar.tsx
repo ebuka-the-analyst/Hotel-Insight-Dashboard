@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import hyattLogo from "@assets/Hyatt_Place_logo.svg_1765276830551.png";
+import hyattLogo from "@assets/Hyatt_Place_logo.svg_1765284683778.png";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Overview", href: "/" },

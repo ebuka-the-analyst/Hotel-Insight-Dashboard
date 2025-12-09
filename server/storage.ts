@@ -1,11 +1,19 @@
 import { db } from "./db";
-import { bookings, datasets, analyticsCache, users, type Booking, type InsertBooking, type Dataset, type InsertDataset, type AnalyticsCache, type InsertAnalyticsCache, type User, type UpsertUser } from "@shared/schema";
-import { eq, sql, and, gte, lte, desc } from "drizzle-orm";
+import { bookings, datasets, analyticsCache, users, emailOtps, type Booking, type InsertBooking, type Dataset, type InsertDataset, type AnalyticsCache, type InsertAnalyticsCache, type User, type UpsertUser, type EmailOtp, type InsertEmailOtp } from "@shared/schema";
+import { eq, sql, and, gte, lte, desc, lt } from "drizzle-orm";
 
 export interface IStorage {
-  // User operations (required for Replit Auth)
+  // User operations
   getUser(id: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  
+  // OTP operations
+  createOtp(data: InsertEmailOtp): Promise<EmailOtp>;
+  getValidOtp(email: string): Promise<EmailOtp | undefined>;
+  markOtpUsed(id: string): Promise<void>;
+  incrementOtpAttempts(id: string): Promise<void>;
+  cleanupExpiredOtps(): Promise<void>;
   
   // Dataset operations
   createDataset(data: InsertDataset): Promise<Dataset>;
