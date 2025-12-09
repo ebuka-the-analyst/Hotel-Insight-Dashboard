@@ -166,8 +166,108 @@ export const guests = pgTable("guests", {
   index("IDX_guest_clv").on(table.clvScore),
 ]);
 
+// Revenue Insights Tables
+
+// Pricing Recommendations - AI-generated rate suggestions
+export const pricingRecommendations = pgTable("pricing_recommendations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  datasetId: varchar("dataset_id").notNull(),
+  targetDate: date("target_date").notNull(),
+  currentAdr: decimal("current_adr", { precision: 10, scale: 2 }).notNull(),
+  suggestedAdr: decimal("suggested_adr", { precision: 10, scale: 2 }).notNull(),
+  changePercent: decimal("change_percent", { precision: 5, scale: 2 }).notNull(),
+  reason: text("reason").notNull(),
+  confidence: integer("confidence").notNull(), // 0-100
+  roomType: text("room_type"),
+  status: text("status").default("pending"), // pending, applied, dismissed
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Revenue Forecasts - predicted future revenue
+export const revenueForecasts = pgTable("revenue_forecasts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  datasetId: varchar("dataset_id").notNull(),
+  forecastDate: date("forecast_date").notNull(),
+  predictedRevenue: decimal("predicted_revenue", { precision: 12, scale: 2 }).notNull(),
+  predictedBookings: integer("predicted_bookings").notNull(),
+  predictedOccupancy: decimal("predicted_occupancy", { precision: 5, scale: 2 }),
+  confidenceLow: decimal("confidence_low", { precision: 12, scale: 2 }),
+  confidenceHigh: decimal("confidence_high", { precision: 12, scale: 2 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Channel Performance Snapshots - margin tracking per channel
+export const channelSnapshots = pgTable("channel_snapshots", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  datasetId: varchar("dataset_id").notNull(),
+  channel: text("channel").notNull(),
+  grossRevenue: decimal("gross_revenue", { precision: 12, scale: 2 }).notNull(),
+  commissionRate: decimal("commission_rate", { precision: 5, scale: 2 }).notNull(),
+  netRevenue: decimal("net_revenue", { precision: 12, scale: 2 }).notNull(),
+  bookingCount: integer("booking_count").notNull(),
+  avgAdr: decimal("avg_adr", { precision: 10, scale: 2 }),
+  recommendation: text("recommendation"),
+  snapshotDate: date("snapshot_date").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Cancellation Alerts - high-risk booking flags
+export const cancellationAlerts = pgTable("cancellation_alerts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  datasetId: varchar("dataset_id").notNull(),
+  bookingId: varchar("booking_id").notNull(),
+  bookingRef: text("booking_ref").notNull(),
+  guestName: text("guest_name").notNull(),
+  arrivalDate: date("arrival_date").notNull(),
+  riskScore: integer("risk_score").notNull(), // 0-100
+  riskFactors: jsonb("risk_factors").notNull(), // Array of reasons
+  suggestedAction: text("suggested_action"),
+  status: text("status").default("active"), // active, resolved, false_positive
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Email Report Subscriptions - user preferences for automated reports
+export const reportSubscriptions = pgTable("report_subscriptions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  datasetId: varchar("dataset_id"),
+  emailAddress: text("email_address").notNull(),
+  frequency: text("frequency").notNull(), // daily, weekly
+  reportTypes: text("report_types").array().notNull(), // kpis, forecasts, alerts, pricing
+  isActive: boolean("is_active").default(true),
+  lastSentAt: timestamp("last_sent_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Insert Schemas
 export const insertBookingSchema = createInsertSchema(bookings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPricingRecommendationSchema = createInsertSchema(pricingRecommendations).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertRevenueForecastSchema = createInsertSchema(revenueForecasts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertChannelSnapshotSchema = createInsertSchema(channelSnapshots).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCancellationAlertSchema = createInsertSchema(cancellationAlerts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertReportSubscriptionSchema = createInsertSchema(reportSubscriptions).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -202,3 +302,18 @@ export type InsertAnalyticsCache = z.infer<typeof insertAnalyticsCacheSchema>;
 
 export type Guest = typeof guests.$inferSelect;
 export type InsertGuest = z.infer<typeof insertGuestSchema>;
+
+export type PricingRecommendation = typeof pricingRecommendations.$inferSelect;
+export type InsertPricingRecommendation = z.infer<typeof insertPricingRecommendationSchema>;
+
+export type RevenueForecast = typeof revenueForecasts.$inferSelect;
+export type InsertRevenueForecast = z.infer<typeof insertRevenueForecastSchema>;
+
+export type ChannelSnapshot = typeof channelSnapshots.$inferSelect;
+export type InsertChannelSnapshot = z.infer<typeof insertChannelSnapshotSchema>;
+
+export type CancellationAlert = typeof cancellationAlerts.$inferSelect;
+export type InsertCancellationAlert = z.infer<typeof insertCancellationAlertSchema>;
+
+export type ReportSubscription = typeof reportSubscriptions.$inferSelect;
+export type InsertReportSubscription = z.infer<typeof insertReportSubscriptionSchema>;
