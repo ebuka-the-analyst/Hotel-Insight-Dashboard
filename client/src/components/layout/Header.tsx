@@ -179,8 +179,11 @@ export function Header() {
           )}
           
           {showSearchResult && (
-            <div className="absolute top-full left-0 mt-2 w-96 bg-white dark:bg-zinc-900 border border-border rounded-xl shadow-2xl z-[9999] overflow-hidden">
-              <div className="bg-gradient-to-r from-orange-400 to-orange-500 px-4 py-3 flex items-center justify-between">
+            <div 
+              className="absolute top-full left-0 mt-2 w-96 border border-gray-200 rounded-xl shadow-2xl z-[9999] overflow-hidden"
+              style={{ backgroundColor: '#ffffff' }}
+            >
+              <div className="px-4 py-3 flex items-center justify-between" style={{ background: 'linear-gradient(to right, #fb923c, #f97316)' }}>
                 <div className="flex items-center gap-2">
                   <span className="text-white text-lg">✨</span>
                   <span className="text-white font-medium text-sm">AI Assistant</span>
@@ -193,21 +196,21 @@ export function Header() {
                   <X className="h-4 w-4 text-white" />
                 </button>
               </div>
-              <div className="max-h-64 overflow-y-auto">
+              <div className="max-h-64 overflow-y-auto" style={{ backgroundColor: '#ffffff' }}>
                 {isSearching ? (
-                  <div className="p-6 flex flex-col items-center justify-center gap-2">
+                  <div className="p-6 flex flex-col items-center justify-center gap-2" style={{ backgroundColor: '#ffffff' }}>
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                    <span className="text-xs text-muted-foreground">Analyzing...</span>
+                    <span className="text-xs text-gray-500">Analyzing...</span>
                   </div>
                 ) : searchResult ? (
-                  <div className="p-4">
-                    <p className="text-sm text-foreground leading-relaxed">{searchResult.answer}</p>
+                  <div className="p-4" style={{ backgroundColor: '#ffffff' }}>
+                    <p className="text-sm text-gray-800 leading-relaxed">{searchResult.answer}</p>
                     {searchResult.suggestedActions && searchResult.suggestedActions.length > 0 && (
-                      <div className="mt-3 pt-3 border-t border-border">
-                        <p className="text-xs text-muted-foreground mb-2">Suggestions:</p>
+                      <div className="mt-3 pt-3 border-t border-gray-200">
+                        <p className="text-xs text-gray-500 mb-2">Suggestions:</p>
                         <div className="flex flex-wrap gap-1.5">
                           {searchResult.suggestedActions.map((action, i) => (
-                            <span key={i} className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                            <span key={i} className="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full">
                               {action}
                             </span>
                           ))}
