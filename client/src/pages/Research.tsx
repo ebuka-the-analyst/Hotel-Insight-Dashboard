@@ -24,7 +24,7 @@ import { useState, useMemo } from "react";
 import { AlertCircle, TrendingUp, DollarSign, Activity, Users, CalendarDays, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Custom Components for PhD Visuals
+// Custom Components for Advanced Visuals
 const RiskMatrix = () => {
   const leadTimes = ["0-3 Days", "3-7 Days", "7-30 Days", "30+ Days"];
   const channels = ["Direct", "Booking Websites", "Corporate"];

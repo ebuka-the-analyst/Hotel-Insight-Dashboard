@@ -72,7 +72,7 @@ export const generateRealisticData = () => {
     const cancelRate = (otaShare * 20) + (directShare * 5) + (corporateShare * 8) + (groupShare * 10);
     const dailyCancellations = Math.round((occupancy / 100) * 150 * (cancelRate / 100)); // Assuming 150 rooms
 
-    // 6. Operational Load Score (PhD Metric)
+    // 6. Operational Load Score (Advanced Metric)
     // Driven by: High Occupancy + High Turnover (Fri/Sun) + High Cancellations
     let turnoverFactor = (dayOfWeek === 5 || dayOfWeek === 0) ? 1.5 : 1.0; // Fri/Sun high turnover
     let loadScore = (occupancy * 0.5) + (dailyCancellations * 2) + (turnoverFactor * 10);

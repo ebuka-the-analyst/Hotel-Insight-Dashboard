@@ -100,7 +100,7 @@ export default function Dashboard() {
     );
   }
 
-  const formatCurrency = (value: number) => `£${value.toFixed(2)}`;
+  const formatCurrency = (value: number) => `£${value.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const formatPercentage = (value: number) => `${value.toFixed(1)}%`;
 
   return (

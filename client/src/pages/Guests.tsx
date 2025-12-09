@@ -273,7 +273,7 @@ export default function Guests() {
             <Users className="h-12 w-12 text-primary mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">No Data Available</h3>
             <p className="text-muted-foreground mb-6">
-              Upload your hotel booking data to unlock comprehensive guest analytics with 36 PhD-level metrics.
+              Upload your hotel booking data to unlock comprehensive guest analytics with 36 advanced metrics.
             </p>
             <Button 
               className="bg-primary hover:bg-primary/90 text-white"
@@ -297,7 +297,7 @@ export default function Guests() {
         <div>
           <h1 className="text-3xl font-serif font-bold" data-testid="text-guests-title">Guest Analytics</h1>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-1">
-            <p className="text-muted-foreground">36 PhD-level metrics for guest performance analysis</p>
+            <p className="text-muted-foreground">36 advanced metrics for guest performance analysis</p>
             <DateRangeFilter value={dateRange} onChange={setDateRange} />
           </div>
         </div>

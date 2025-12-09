@@ -192,7 +192,7 @@ export default function Analysis() {
         <div>
           <h1 className="text-3xl font-serif font-bold" data-testid="text-analysis-title">Comprehensive Analytics</h1>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-1">
-            <p className="text-muted-foreground">70+ metrics for PhD-level hotel performance analysis</p>
+            <p className="text-muted-foreground">70+ metrics for advanced hotel performance analysis</p>
             <DateRangeFilter value={dateRange} onChange={setDateRange} />
           </div>
         </div>
