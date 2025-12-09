@@ -179,7 +179,7 @@ export function Header() {
           )}
           
           {showSearchResult && (
-            <div className="fixed top-20 right-6 w-80 bg-white dark:bg-zinc-900 border border-border rounded-xl shadow-2xl z-[100] overflow-hidden">
+            <div className="absolute top-full left-0 mt-2 w-96 bg-white dark:bg-zinc-900 border border-border rounded-xl shadow-2xl z-[9999] overflow-hidden">
               <div className="bg-gradient-to-r from-orange-400 to-orange-500 px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-white text-lg">✨</span>
@@ -188,6 +188,7 @@ export function Header() {
                 <button
                   onClick={() => setShowSearchResult(false)}
                   className="p-1 hover:bg-white/20 rounded-full transition-colors"
+                  data-testid="button-close-ai-response"
                 >
                   <X className="h-4 w-4 text-white" />
                 </button>
