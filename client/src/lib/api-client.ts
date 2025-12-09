@@ -380,3 +380,220 @@ export async function getComprehensiveAnalytics(datasetId?: string, dateRange?: 
 
   return response.json();
 }
+
+export interface RevenueForecast {
+  id: string;
+  forecastDate: string;
+  predictedRevenue: string;
+  predictedBookings: number;
+  confidenceLevel: string;
+}
+
+export interface ChannelSnapshot {
+  id: string;
+  channel: string;
+  grossRevenue: string;
+  commissionRate: string;
+  netRevenue: string;
+  bookingCount: number;
+  recommendation: string | null;
+}
+
+export interface CancellationAlert {
+  id: string;
+  bookingRef: string;
+  guestName: string;
+  arrivalDate: string;
+  riskScore: number;
+  riskFactors: string;
+  status: string;
+}
+
+export interface PricingRecommendation {
+  id: string;
+  targetDate: string;
+  currentAdr: string;
+  suggestedAdr: string;
+  changePercent: string;
+  rationale: string;
+  status: string;
+}
+
+export interface ReportSubscription {
+  id: string;
+  emailAddress: string;
+  frequency: string;
+  reportTypes: string[];
+  enabled: boolean;
+}
+
+export interface RevenueInsightsSummary {
+  forecasts: RevenueForecast[];
+  channels: ChannelSnapshot[];
+  alerts: CancellationAlert[];
+  overview: {
+    totalPredictedRevenue: number;
+    averageConfidence: number;
+    highRiskBookings: number;
+    topChannel: string;
+    potentialSavings: number;
+  };
+}
+
+export async function getRevenueInsightsSummary(datasetId?: string): Promise<RevenueInsightsSummary> {
+  const url = datasetId 
+    ? `/api/revenue-insights/summary?datasetId=${datasetId}`
+    : "/api/revenue-insights/summary";
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Failed to fetch revenue insights");
+  return response.json();
+}
+
+export async function generateForecasts(datasetId: string, daysAhead?: number): Promise<RevenueForecast[]> {
+  const response = await fetch("/api/revenue-insights/forecasts/generate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ datasetId, daysAhead }),
+  });
+  if (!response.ok) throw new Error("Failed to generate forecasts");
+  return response.json();
+}
+
+export async function getForecasts(datasetId?: string): Promise<RevenueForecast[]> {
+  const url = datasetId 
+    ? `/api/revenue-insights/forecasts?datasetId=${datasetId}`
+    : "/api/revenue-insights/forecasts";
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Failed to fetch forecasts");
+  return response.json();
+}
+
+export async function analyzeChannels(datasetId: string): Promise<ChannelSnapshot[]> {
+  const response = await fetch("/api/revenue-insights/channels/analyze", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ datasetId }),
+  });
+  if (!response.ok) throw new Error("Failed to analyze channels");
+  return response.json();
+}
+
+export async function getChannelSnapshots(datasetId?: string): Promise<ChannelSnapshot[]> {
+  const url = datasetId 
+    ? `/api/revenue-insights/channels?datasetId=${datasetId}`
+    : "/api/revenue-insights/channels";
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Failed to fetch channel snapshots");
+  return response.json();
+}
+
+export async function generateAlerts(datasetId: string): Promise<CancellationAlert[]> {
+  const response = await fetch("/api/revenue-insights/alerts/generate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ datasetId }),
+  });
+  if (!response.ok) throw new Error("Failed to generate alerts");
+  return response.json();
+}
+
+export async function getCancellationAlerts(datasetId?: string): Promise<CancellationAlert[]> {
+  const url = datasetId 
+    ? `/api/revenue-insights/alerts?datasetId=${datasetId}`
+    : "/api/revenue-insights/alerts";
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Failed to fetch cancellation alerts");
+  return response.json();
+}
+
+export async function updateAlertStatus(alertId: string, status: string): Promise<CancellationAlert> {
+  const response = await fetch(`/api/revenue-insights/alerts/${alertId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+  });
+  if (!response.ok) throw new Error("Failed to update alert");
+  return response.json();
+}
+
+export async function generatePricingRecommendations(datasetId: string, daysAhead?: number): Promise<PricingRecommendation[]> {
+  const response = await fetch("/api/pricing/generate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ datasetId, daysAhead }),
+  });
+  if (!response.ok) throw new Error("Failed to generate pricing recommendations");
+  return response.json();
+}
+
+export async function getPricingRecommendations(datasetId?: string): Promise<PricingRecommendation[]> {
+  const url = datasetId 
+    ? `/api/pricing/recommendations?datasetId=${datasetId}`
+    : "/api/pricing/recommendations";
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Failed to fetch pricing recommendations");
+  return response.json();
+}
+
+export async function updatePricingStatus(id: string, status: string): Promise<PricingRecommendation> {
+  const response = await fetch(`/api/pricing/recommendations/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+  });
+  if (!response.ok) throw new Error("Failed to update pricing recommendation");
+  return response.json();
+}
+
+export async function getAIPricingSuggestion(datasetId: string, targetDate: string, basePrice: number): Promise<{ suggestedPrice: number; rationale: string }> {
+  const response = await fetch("/api/pricing/ai-suggest", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ datasetId, targetDate, basePrice }),
+  });
+  if (!response.ok) throw new Error("Failed to get AI pricing suggestion");
+  return response.json();
+}
+
+export async function getReportSubscriptions(): Promise<ReportSubscription[]> {
+  const response = await fetch("/api/reports/subscriptions");
+  if (!response.ok) throw new Error("Failed to fetch subscriptions");
+  return response.json();
+}
+
+export async function createReportSubscription(data: { datasetId?: string; emailAddress: string; frequency: string; reportTypes: string[] }): Promise<ReportSubscription> {
+  const response = await fetch("/api/reports/subscriptions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error("Failed to create subscription");
+  return response.json();
+}
+
+export async function updateReportSubscription(id: string, data: Partial<{ emailAddress: string; frequency: string; reportTypes: string[]; enabled: boolean }>): Promise<ReportSubscription> {
+  const response = await fetch(`/api/reports/subscriptions/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error("Failed to update subscription");
+  return response.json();
+}
+
+export async function deleteReportSubscription(id: string): Promise<void> {
+  const response = await fetch(`/api/reports/subscriptions/${id}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) throw new Error("Failed to delete subscription");
+}
+
+export async function sendTestEmail(subscriptionId: string): Promise<{ success: boolean }> {
+  const response = await fetch("/api/reports/test", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ subscriptionId }),
+  });
+  if (!response.ok) throw new Error("Failed to send test email");
+  return response.json();
+}

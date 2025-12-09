@@ -14,6 +14,7 @@ import Team from "@/pages/Team";
 import Settings from "@/pages/Settings";
 import Landing from "@/pages/Landing";
 import Guests from "@/pages/Guests";
+import RevenueInsights from "@/pages/RevenueInsights";
 import { Loader2 } from "lucide-react";
 
 function Router() {
@@ -46,6 +47,7 @@ function Router() {
       <Route path="/upload" component={Upload} />
       <Route path="/analysis" component={Analysis} />
       <Route path="/guests" component={Guests} />
+      <Route path="/revenue-insights" component={RevenueInsights} />
       <Route path="/research" component={Research} />
       <Route path="/agents" component={Agents} />
       <Route path="/team" component={Team} />

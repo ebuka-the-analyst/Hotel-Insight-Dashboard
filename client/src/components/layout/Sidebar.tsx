@@ -11,7 +11,8 @@ import {
   ChevronRight,
   Hexagon,
   Microscope,
-  UserCheck
+  UserCheck,
+  TrendingUp
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ import hyattLogo from "@assets/Hyatt_Place_logo.svg_1765284683778.png";
 const navItems = [
   { icon: LayoutDashboard, label: "Overview", href: "/" },
   { icon: PieChart, label: "Reports", href: "/analysis" },
+  { icon: TrendingUp, label: "Revenue Insights", href: "/revenue-insights" },
   { icon: Microscope, label: "Advanced Insights", href: "/research" },
   { icon: UserCheck, label: "Guest Analytics", href: "/guests" },
   { icon: Bot, label: "AI Helpers", href: "/agents" },

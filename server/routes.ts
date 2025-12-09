@@ -10,6 +10,10 @@ import { autoMapColumns } from "./auto-mapper";
 import { calculateComprehensiveAnalytics } from "./analytics-service";
 import { setupEmailAuth, isAuthenticated, verifyPassword, hashPassword } from "./emailAuth";
 import { extractGuestsFromBookings, calculateGuestAnalytics } from "./guest-analytics-service";
+import { revenueInsightsService } from "./revenue-insights-service";
+import { aiPricingService } from "./ai-pricing-service";
+import { emailReportsService } from "./email-reports-service";
+import { insertReportSubscriptionSchema } from "@shared/schema";
 
 // Simple in-memory rate limiter for login
 const loginRateLimiter = new Map<string, { count: number; resetTime: number }>();
@@ -556,6 +560,315 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("Get guest analytics error:", error);
       res.status(500).json({ error: error.message || "Failed to get guest analytics" });
+    }
+  });
+
+  // ===== REVENUE INSIGHTS ENDPOINTS =====
+
+  // Get revenue insights summary
+  app.get("/api/revenue-insights/summary", async (req, res) => {
+    try {
+      const datasetId = req.query.datasetId as string;
+      if (!datasetId) {
+        return res.status(400).json({ error: "datasetId is required" });
+      }
+      
+      const summary = await revenueInsightsService.getRevenueInsightsSummary(datasetId);
+      res.json(summary);
+    } catch (error: any) {
+      console.error("Get revenue insights summary error:", error);
+      res.status(500).json({ error: error.message || "Failed to get revenue insights" });
+    }
+  });
+
+  // Generate revenue forecasts
+  app.post("/api/revenue-insights/forecasts/generate", isAuthenticated, async (req, res) => {
+    try {
+      const { datasetId, daysAhead } = req.body;
+      if (!datasetId) {
+        return res.status(400).json({ error: "datasetId is required" });
+      }
+      
+      const forecasts = await revenueInsightsService.generateRevenueForecasts(datasetId, daysAhead || 30);
+      await revenueInsightsService.saveForecasts(forecasts);
+      const savedForecasts = await revenueInsightsService.getForecasts(datasetId);
+      
+      res.json(savedForecasts);
+    } catch (error: any) {
+      console.error("Generate forecasts error:", error);
+      res.status(500).json({ error: error.message || "Failed to generate forecasts" });
+    }
+  });
+
+  // Get revenue forecasts
+  app.get("/api/revenue-insights/forecasts", async (req, res) => {
+    try {
+      const datasetId = req.query.datasetId as string;
+      if (!datasetId) {
+        return res.json([]);
+      }
+      
+      const forecasts = await revenueInsightsService.getForecasts(datasetId);
+      res.json(forecasts);
+    } catch (error: any) {
+      console.error("Get forecasts error:", error);
+      res.status(500).json({ error: error.message || "Failed to get forecasts" });
+    }
+  });
+
+  // Generate channel analysis
+  app.post("/api/revenue-insights/channels/analyze", isAuthenticated, async (req, res) => {
+    try {
+      const { datasetId } = req.body;
+      if (!datasetId) {
+        return res.status(400).json({ error: "datasetId is required" });
+      }
+      
+      const snapshots = await revenueInsightsService.analyzeChannelPerformance(datasetId);
+      await revenueInsightsService.saveChannelSnapshots(snapshots);
+      const savedSnapshots = await revenueInsightsService.getChannelSnapshots(datasetId);
+      
+      res.json(savedSnapshots);
+    } catch (error: any) {
+      console.error("Analyze channels error:", error);
+      res.status(500).json({ error: error.message || "Failed to analyze channels" });
+    }
+  });
+
+  // Get channel snapshots
+  app.get("/api/revenue-insights/channels", async (req, res) => {
+    try {
+      const datasetId = req.query.datasetId as string;
+      if (!datasetId) {
+        return res.json([]);
+      }
+      
+      const snapshots = await revenueInsightsService.getChannelSnapshots(datasetId);
+      res.json(snapshots);
+    } catch (error: any) {
+      console.error("Get channel snapshots error:", error);
+      res.status(500).json({ error: error.message || "Failed to get channel data" });
+    }
+  });
+
+  // Generate cancellation alerts
+  app.post("/api/revenue-insights/alerts/generate", isAuthenticated, async (req, res) => {
+    try {
+      const { datasetId } = req.body;
+      if (!datasetId) {
+        return res.status(400).json({ error: "datasetId is required" });
+      }
+      
+      const alerts = await revenueInsightsService.identifyHighRiskBookings(datasetId);
+      await revenueInsightsService.saveCancellationAlerts(alerts);
+      const savedAlerts = await revenueInsightsService.getCancellationAlerts(datasetId);
+      
+      res.json(savedAlerts);
+    } catch (error: any) {
+      console.error("Generate alerts error:", error);
+      res.status(500).json({ error: error.message || "Failed to generate alerts" });
+    }
+  });
+
+  // Get cancellation alerts
+  app.get("/api/revenue-insights/alerts", async (req, res) => {
+    try {
+      const datasetId = req.query.datasetId as string;
+      const status = req.query.status as string | undefined;
+      if (!datasetId) {
+        return res.json([]);
+      }
+      
+      const alerts = await revenueInsightsService.getCancellationAlerts(datasetId, status);
+      res.json(alerts);
+    } catch (error: any) {
+      console.error("Get alerts error:", error);
+      res.status(500).json({ error: error.message || "Failed to get alerts" });
+    }
+  });
+
+  // Update alert status
+  app.patch("/api/revenue-insights/alerts/:alertId", isAuthenticated, async (req, res) => {
+    try {
+      const { alertId } = req.params;
+      const { status } = req.body;
+      
+      const updated = await revenueInsightsService.updateAlertStatus(alertId, status);
+      res.json(updated);
+    } catch (error: any) {
+      console.error("Update alert error:", error);
+      res.status(500).json({ error: error.message || "Failed to update alert" });
+    }
+  });
+
+  // ===== AI PRICING ENDPOINTS =====
+
+  // Generate pricing recommendations
+  app.post("/api/pricing/generate", isAuthenticated, async (req, res) => {
+    try {
+      const { datasetId, daysAhead } = req.body;
+      if (!datasetId) {
+        return res.status(400).json({ error: "datasetId is required" });
+      }
+      
+      const recommendations = await aiPricingService.generatePricingRecommendations(datasetId, daysAhead || 14);
+      await aiPricingService.savePricingRecommendations(recommendations);
+      const savedRecs = await aiPricingService.getPricingRecommendations(datasetId);
+      
+      res.json(savedRecs);
+    } catch (error: any) {
+      console.error("Generate pricing error:", error);
+      res.status(500).json({ error: error.message || "Failed to generate pricing" });
+    }
+  });
+
+  // Get pricing recommendations
+  app.get("/api/pricing/recommendations", async (req, res) => {
+    try {
+      const datasetId = req.query.datasetId as string;
+      const status = req.query.status as string | undefined;
+      if (!datasetId) {
+        return res.json([]);
+      }
+      
+      const recommendations = await aiPricingService.getPricingRecommendations(datasetId, status);
+      res.json(recommendations);
+    } catch (error: any) {
+      console.error("Get pricing error:", error);
+      res.status(500).json({ error: error.message || "Failed to get pricing" });
+    }
+  });
+
+  // Update pricing recommendation status
+  app.patch("/api/pricing/recommendations/:id", isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      const updated = await aiPricingService.updateRecommendationStatus(id, status);
+      res.json(updated);
+    } catch (error: any) {
+      console.error("Update pricing error:", error);
+      res.status(500).json({ error: error.message || "Failed to update pricing" });
+    }
+  });
+
+  // Get AI-enhanced pricing for specific date
+  app.post("/api/pricing/ai-suggest", isAuthenticated, async (req, res) => {
+    try {
+      const { datasetId, targetDate, currentAdr, occupancyRate, dayOfWeek, isHoliday } = req.body;
+      if (!datasetId || !targetDate) {
+        return res.status(400).json({ error: "datasetId and targetDate are required" });
+      }
+      
+      const suggestion = await aiPricingService.generateAIEnhancedRecommendation(
+        datasetId,
+        targetDate,
+        {
+          currentAdr: currentAdr || 150,
+          occupancyRate: occupancyRate || 0.7,
+          dayOfWeek: dayOfWeek ?? new Date(targetDate).getDay(),
+          isHoliday: isHoliday || false,
+        }
+      );
+      
+      res.json(suggestion);
+    } catch (error: any) {
+      console.error("AI pricing error:", error);
+      res.status(500).json({ error: error.message || "Failed to get AI pricing" });
+    }
+  });
+
+  // ===== EMAIL REPORTS ENDPOINTS =====
+
+  // Get user's report subscriptions
+  app.get("/api/reports/subscriptions", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const subscriptions = await emailReportsService.getSubscriptions(userId);
+      res.json(subscriptions);
+    } catch (error: any) {
+      console.error("Get subscriptions error:", error);
+      res.status(500).json({ error: error.message || "Failed to get subscriptions" });
+    }
+  });
+
+  // Create report subscription
+  app.post("/api/reports/subscriptions", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const { datasetId, emailAddress, frequency, reportTypes } = req.body;
+      
+      const subscriptionData = insertReportSubscriptionSchema.parse({
+        userId,
+        datasetId,
+        emailAddress,
+        frequency,
+        reportTypes,
+        isActive: true,
+      });
+      
+      const subscription = await emailReportsService.createSubscription(subscriptionData);
+      res.json({ success: true, subscription });
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: fromZodError(error).message });
+      }
+      console.error("Create subscription error:", error);
+      res.status(500).json({ error: error.message || "Failed to create subscription" });
+    }
+  });
+
+  // Update report subscription
+  app.patch("/api/reports/subscriptions/:id", isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { isActive, frequency, reportTypes } = req.body;
+      
+      await emailReportsService.updateSubscription(id, { isActive, frequency, reportTypes });
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Update subscription error:", error);
+      res.status(500).json({ error: error.message || "Failed to update subscription" });
+    }
+  });
+
+  // Delete report subscription
+  app.delete("/api/reports/subscriptions/:id", isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      await emailReportsService.deleteSubscription(id);
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Delete subscription error:", error);
+      res.status(500).json({ error: error.message || "Failed to delete subscription" });
+    }
+  });
+
+  // Send test email
+  app.post("/api/reports/test", isAuthenticated, async (req, res) => {
+    try {
+      const { emailAddress, datasetId } = req.body;
+      if (!emailAddress || !datasetId) {
+        return res.status(400).json({ error: "emailAddress and datasetId are required" });
+      }
+      
+      const result = await emailReportsService.sendTestEmail(emailAddress, datasetId);
+      res.json(result);
+    } catch (error: any) {
+      console.error("Send test email error:", error);
+      res.status(500).json({ error: error.message || "Failed to send test email" });
+    }
+  });
+
+  // Trigger scheduled reports (for cron job or manual trigger)
+  app.post("/api/reports/process-scheduled", isAuthenticated, async (req, res) => {
+    try {
+      const result = await emailReportsService.processScheduledReports();
+      res.json(result);
+    } catch (error: any) {
+      console.error("Process scheduled reports error:", error);
+      res.status(500).json({ error: error.message || "Failed to process scheduled reports" });
     }
   });
 
