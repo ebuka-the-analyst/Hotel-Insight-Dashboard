@@ -1,0 +1,341 @@
+Good, this is where you move from “nice dashboard” to **research-level hotel intelligence**.
+
+You’ve already built in:
+
+* Seasonality
+* Weekend/weekday pattern
+* Corporate vs leisure behaviour
+* Cancellations & lead time
+* Pricing logic
+
+**Beyond that, here’s what else you can analyse at a PhD level** using just this dataset.
+
+---
+
+## 1. Property-level performance & positioning (Hyatt Place vs Hyatt House)
+
+**Questions**
+
+* How do the two properties differ in:
+
+  * ADR (Average Daily Rate), RevPAR, Occupancy, LOS?
+  * Cancellation rates by segment/channel?
+  * Market mix (corporate vs leisure vs group vs long stay)?
+
+**Analytical ideas**
+
+* **Panel / multilevel models**: treat each property as a “group” and model Rate or Cancellation probability as:
+  [
+  \text{Rate}_{it} = \beta_0 + \beta_1 \text{Month}_t + \beta_2 \text{Weekend}*t + \beta_3 \text{Segment}*i + u*{\text{Property}} + \epsilon*{it}
+  ]
+  to see how much variance is due to property vs time vs guest mix.
+
+* **Positioning view**:
+
+  * Scatter: x = ADR, y = Occupancy %, size = RevPAR, colour = Property.
+  * This becomes an executive “who’s winning and why” visual for your web app.
+
+---
+
+## 2. Lead time curves & booking-window behaviour
+
+**Questions**
+
+* How far in advance do different segments and channels book?
+* Where is the **risk window** for cancellations?
+
+**Analytical ideas**
+
+* **Booking-window distribution**:
+
+  * Plot Lead Time histograms by:
+
+    * Market Segment (Corporate vs Leisure vs Group vs Long Stay)
+    * Channel (Direct vs OTA vs Agent vs GDS)
+
+* **Hazard of cancellation vs lead time**:
+
+  * Fit a **logistic regression** or **survival-style model**:
+    [
+    P(\text{Cancel}) = f(\text{LeadTime}, \text{Channel}, \text{DepositType}, \text{Segment})
+    ]
+  * Use this to define:
+
+    * “Safe window” (e.g., bookings inside 7 days rarely cancel)
+    * “Volatile window” (e.g., 30–90 days out with OTA + refundable)
+
+* This feeds directly into a **“Cancellation Risk Heatmap”** on your dashboard (Lead Time vs Channel vs Segment).
+
+---
+
+## 3. Length-of-stay (LOS) optimisation & occupancy patterns
+
+**Questions**
+
+* Which segments and channels deliver the best **LOS × Rate** combination?
+* Does Length of Stay impact cancellation or revenue per night?
+
+**Analytical ideas**
+
+* **LOS distribution** by segment:
+
+  * Corporate: lots of 1–3 nights?
+  * Long Stay/group: 7+ nights?
+
+* **Revenue-per-stay vs LOS**:
+
+  * Compare:
+
+    * Short stays: high ADR but more cleaning/turnover.
+    * Longer stays: lower ADR but lower operational churn (housekeeping & check-in/out load).
+
+* **Survival analysis** on stay extension:
+
+  * Define probability of **extended stays** (if you later add “extended nights” column).
+  * In your app, you can surface:
+    “Guests with LOS ≥ 5 and Corporate Segment have X% chance of requesting an extension.”
+
+---
+
+## 4. Channel performance & “cost of distribution” logic
+
+Even if you don’t yet have real acquisition cost, you can **simulate or attach standard assumptions**.
+
+**Questions**
+
+* Which channels are **most profitable after assumed fees**?
+* Which channels drive the most **cancellations, short stays, and imbalance in demand**?
+
+**Analytical ideas**
+
+* For each channel (Direct, OTA, Agent, GDS):
+
+  * ADR
+  * Occupancy contribution
+  * Cancellation rate
+  * LOS
+* Attach hypothetical cost:
+
+  * Direct: 0–5%
+  * OTA: 15–20%
+  * Agent: 10–15%
+  * GDS: ~10%
+
+Compute **Net Revenue = RoomRevenue × (1 – Fee%)**.
+
+This gives you a **Channel Quality Index**, ranking channels by profitability, not just volume.
+
+---
+
+## 5. Price sensitivity & demand curves (micro “revenue management”)
+
+**Questions**
+
+* How does **demand vary with price** within a season?
+* Are certain segments or channels more price sensitive?
+
+**Analytical ideas**
+
+* Within a given month and day-of-week bucket (e.g., July weekends):
+
+  * Bin Rate (e.g., £80–100, £101–120, etc.).
+  * Plot **Occupancy or Bookings vs Rate** to approximate a **local demand curve**.
+* Use **regression**:
+  [
+  \text{Bookings}_{t} = f(\text{Rate}_t, \text{DayOfWeek}_t, \text{Season}_t, \text{EventFlag}_t)
+  ]
+* For PhD-level work:
+
+  * Explore **elasticity** by segment:
+    [
+    \text{Elasticity} = \frac{%\Delta \text{Demand}}{%\Delta \text{Price}}
+    ]
+  * Show that, for example:
+
+    * Corporate weekday demand is less price-sensitive.
+    * Leisure weekend demand is more sensitive to promo prices.
+
+---
+
+## 6. Cancellation typologies & policy impact
+
+You already built logic for cancellations – now analyse it deeply.
+
+**Questions**
+
+* What **types of cancellations** do we have (last-minute vs early, OTA vs direct)?
+* How would a **policy change** (e.g., stricter refundable window) impact revenue?
+
+**Analytical ideas**
+
+* **Cluster analysis / typologies** of cancelled bookings:
+
+  * Features: Lead Time, Channel, Deposit Type, Segment, LOS, Rate.
+  * Use k-means or another clustering approach (conceptually) to classify:
+
+    * “High-risk OTA leisure long-lead bookings”
+    * “Low-risk corporate last-minute bookings”
+* **Scenario simulation**:
+
+  * If we change rule: “Non-refundable for stays with Lead Time < 3 days”
+  * Estimate:
+
+    * Reduction in cancellations
+    * Potential loss in demand due to stricter conditions
+    * Net revenue impact
+
+This is PhD-level when framed as **policy evaluation** using simulation / causal reasoning.
+
+---
+
+## 7. Guest mix, geography & diversification risk
+
+**Questions**
+
+* How dependent is the hotel on a few guest countries or segments?
+* What happens if **one market collapses** (e.g., travel restriction)?
+
+**Analytical ideas**
+
+* **Country mix index**:
+
+  * Share of room nights by Guest Country.
+  * Use **Herfindahl-Hirschman Index (HHI)** for concentration:
+    [
+    HHI = \sum s_i^2
+    ]
+    where ( s_i ) is the share of nights from country i.
+  * High HHI = risky over-reliance; low HHI = diversified.
+
+* Compare this by **Property** and **Season**:
+
+  * Maybe Hyatt House has a more international long-stay mix; Hyatt Place more UK corporate weekday.
+
+---
+
+## 8. Repeat guests, loyalty & proto-CLV
+
+Even without spend beyond “Rate × Nights”, you can treat stays as **episodes in a customer lifecycle.**
+
+**Questions**
+
+* How do repeat guests differ from first-timers?
+* Do repeat guests:
+
+  * Cancel less?
+  * Pay similar or higher rates?
+  * Prefer particular room/meal/segments?
+
+**Analytical ideas**
+
+* Mark each **Name** as:
+
+  * First-time vs returning (using Is Repeated Guest + Previous Bookings Not Canceled).
+* Compute:
+
+  * Average ADR, LOS, Cancellation Rate for each group.
+* Define a very simple **Customer Lifetime Value proxy**:
+  [
+  CLV_{\text{guest}} \approx \sum (\text{Rate} \times \text{Nights})
+  ]
+* PhD-level extension:
+
+  * Use **cohort analysis** (by first arrival month/year) to track **retention** of guests over time.
+
+---
+
+## 9. Operational strain & service quality risk
+
+You already have:
+
+* Booking Changes
+* Same Room Assigned
+* Waiting List Days
+* LOS, Arrivals, Departures per day
+
+Use these as **proxies for operational stress**.
+
+**Questions**
+
+* On which days is the property operationally “stretched”?
+* When are guests more likely to experience room moves, changes, or waiting lists?
+
+**Analytical ideas**
+
+* Build a **daily operations index**:
+
+  * For each date, compute:
+
+    * Arrivals, Departures, In-House guests
+    * No. of booking changes
+    * Number of guests with “Waiting List Days > 0”
+    * % of repeated guests NOT getting same room (service disappointment proxy)
+  * Combine into a composite **Operational Load Score**.
+
+* Then correlate this Operational Load Score with:
+
+  * Cancellation rate
+  * Balance outstanding
+  * Share of OTA bookings (which often complicate allocations)
+
+In your web app, this becomes a **heatmap calendar**:
+
+* Green = smooth days
+* Red = operationally intense days where service risk is high.
+
+---
+
+## 10. Room assignment quality & upgrade strategy (if you extend later)
+
+Even with the current columns, you can start the thinking.
+
+**Questions**
+
+* Where are we breaking “Same Room Assigned” expectations?
+* Do repeat guests get better room types?
+
+**Analytical ideas**
+
+* For repeat guests:
+
+  * Compare Room Type to Charge vs Room Type on subsequent stays.
+  * Identify implicit “upgrade patterns” (e.g., they often get Suites on low-demand nights).
+
+* Use this to design:
+
+  * A rule-based or ML-driven **upgrade recommender**:
+
+    * When occupancy < 70%, consider upgrading high-CLV or repeat guests to certain room types.
+
+---
+
+## 11. Multi-objective optimisation view (RevPAR ↔ Cancellations ↔ Operations)
+
+PhD-level doesn’t just mean one model – it means acknowledging **trade-offs**.
+
+Use your dataset to explore:
+
+* **Revenue objective**: maximise RevPAR
+* **Stability objective**: minimise cancellation volatility and last-minute changes
+* **Operational objective**: smooth arrivals/departures to avoid spikes
+
+You can demonstrate how:
+
+* Pushing price too high:
+
+  * Increases ADR but might reduce occupancy and increase cancellations in some segments.
+* Over-reliance on OTAs:
+
+  * Fills occupancy but increases cancellation risk and reduces net revenue.
+* Relaxed refundable policy:
+
+  * Can increase demand but raises volatility (bad for staffing and planning).
+
+This can be framed formally as a **multi-objective optimisation problem**, even if you don’t solve it fully in code yet.
+
+---
+
+If you want, next I can:
+
+* Take **one or two of these (e.g., Cancellation Risk + Channel Profitability)**
+* And design **exact charts + metrics + layout** for your **web dashboard** (e.g., “GM View”, “Revenue Manager View”, “Operations View”) so it looks and feels like a PhD-grade hotel analytics product.

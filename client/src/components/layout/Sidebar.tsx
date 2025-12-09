@@ -9,14 +9,17 @@ import {
   Bot, 
   ChevronLeft,
   ChevronRight,
-  Hexagon
+  Hexagon,
+  Microscope
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import hyattLogo from "@assets/Hyatt_Place_logo.svg_1765276830551.png";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Overview", href: "/" },
   { icon: PieChart, label: "Analysis", href: "/analysis" },
+  { icon: Microscope, label: "Deep Dive (PhD)", href: "/research" },
   { icon: Bot, label: "AI Insights", href: "/agents" },
   { icon: Upload, label: "Data Source", href: "/upload" },
   { icon: Users, label: "Team", href: "/team" },
@@ -34,14 +37,15 @@ export function Sidebar() {
         collapsed ? "w-[80px]" : "w-[280px]"
       )}
     >
-      <div className="h-16 flex items-center px-6 border-b border-sidebar-border/50">
-        <Hexagon className="h-8 w-8 text-primary fill-primary/20 mr-3 shrink-0" />
-        <span className={cn(
-          "font-serif font-bold text-xl tracking-tight transition-opacity duration-300 overflow-hidden whitespace-nowrap",
-          collapsed ? "opacity-0 w-0" : "opacity-100 w-auto"
-        )}>
-          AutoInsight
-        </span>
+      <div className="h-24 flex items-center justify-center px-4 border-b border-sidebar-border/50 bg-white dark:bg-sidebar">
+        <img 
+          src={hyattLogo} 
+          alt="Hyatt Place" 
+          className={cn(
+            "transition-all duration-300 object-contain",
+            collapsed ? "w-10 h-10" : "w-40 h-16"
+          )}
+        />
       </div>
 
       <nav className="flex-1 py-6 px-3 space-y-2 overflow-y-auto">
