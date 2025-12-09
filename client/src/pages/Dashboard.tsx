@@ -11,11 +11,16 @@ import {
   Star,
   ArrowRight,
   Sparkles,
-  Loader2
+  Loader2,
+  BarChart3,
+  Clock,
+  Calendar,
+  Building,
+  Percent
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import { getKPIs, getTrends } from "@/lib/api-client";
+import { getKPIs, getTrends, getComprehensiveAnalytics } from "@/lib/api-client";
 import { useLocation } from "wouter";
 
 export default function Dashboard() {
@@ -29,6 +34,11 @@ export default function Dashboard() {
   const { data: trendsData, isLoading: trendsLoading } = useQuery({
     queryKey: ["trends"],
     queryFn: () => getTrends(),
+  });
+
+  const { data: fullAnalytics } = useQuery({
+    queryKey: ["comprehensive-analytics"],
+    queryFn: () => getComprehensiveAnalytics(),
   });
 
   const trends = trendsData?.daily || [];

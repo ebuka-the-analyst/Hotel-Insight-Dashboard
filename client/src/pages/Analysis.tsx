@@ -1,147 +1,688 @@
 import { Layout } from "@/components/layout/Layout";
 import { GlassCard } from "@/components/ui/glass-card";
-import { ChartWidget } from "@/components/dashboard/ChartWidget";
 import { Button } from "@/components/ui/button";
-import { Download, Share2, Filter, Calendar } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import { 
+  Download, 
+  TrendingUp, 
+  TrendingDown,
+  DollarSign,
+  Calendar,
+  Users,
+  AlertTriangle,
+  BarChart3,
+  PieChart,
+  Target,
+  Zap,
+  Globe,
+  Clock,
+  Building,
+  Percent,
+  ArrowUpRight,
+  ArrowDownRight,
+  Loader2,
+  CheckCircle,
+  XCircle,
+  AlertCircle
+} from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { getComprehensiveAnalytics } from "@/lib/api-client";
+import { useLocation } from "wouter";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart as RechartsPie,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+  Legend,
+  Area,
+  AreaChart,
+} from "recharts";
 
-// Mock Heatmap Component
-const Heatmap = () => {
-  const hours = Array.from({ length: 24 }, (_, i) => i);
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  
+const COLORS = ['#4B77A9', '#bf5b20', '#11b6e9', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4'];
+
+function MetricCard({ 
+  title, 
+  value, 
+  subtitle, 
+  icon: Icon, 
+  trend,
+  color = "primary"
+}: { 
+  title: string; 
+  value: string | number; 
+  subtitle?: string;
+  icon?: any;
+  trend?: 'up' | 'down' | 'neutral';
+  color?: string;
+}) {
   return (
-    <div className="w-full overflow-x-auto">
-      <div className="min-w-[600px]">
-        <div className="flex">
-          <div className="w-12"></div>
-          {hours.filter(h => h % 2 === 0).map(h => (
-            <div key={h} className="flex-1 text-xs text-muted-foreground text-center">{h}:00</div>
-          ))}
+    <GlassCard className="p-4" data-testid={`metric-${title.toLowerCase().replace(/\s+/g, '-')}`}>
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-xs text-muted-foreground uppercase tracking-wide">{title}</p>
+          <p className="text-2xl font-bold mt-1">{value}</p>
+          {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
         </div>
-        {days.map(day => (
-          <div key={day} className="flex items-center mt-1">
-            <div className="w-12 text-xs font-medium text-muted-foreground">{day}</div>
-            <div className="flex-1 flex gap-1">
-              {hours.map(h => {
-                // Generate semi-random intensity based on typical hotel patterns
-                // Peak hours: 8-10am (breakfast/checkout), 6-9pm (dinner)
-                // Busy days: Fri, Sat
-                const isWeekend = day === "Fri" || day === "Sat";
-                const isPeak = (h >= 8 && h <= 10) || (h >= 18 && h <= 21);
-                let intensity = Math.random() * 0.3;
-                if (isWeekend) intensity += 0.2;
-                if (isPeak) intensity += 0.4;
-                
-                return (
-                  <div 
-                    key={h} 
-                    className="h-8 flex-1 rounded-sm transition-all hover:scale-110 hover:z-10 cursor-pointer relative group"
-                    style={{ 
-                      backgroundColor: `rgba(255, 165, 54, ${Math.min(intensity, 1)})` // Primary Orange
-                    }}
-                  >
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-black/80 text-white text-xs p-2 rounded whitespace-nowrap z-20">
-                      {day} {h}:00 - {(intensity * 100).toFixed(0)}% full
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+        {Icon && (
+          <div className={`p-2 rounded-lg bg-${color}/10`}>
+            <Icon className={`h-5 w-5 text-${color}`} />
           </div>
-        ))}
+        )}
       </div>
+      {trend && (
+        <div className={`flex items-center gap-1 mt-2 text-xs ${trend === 'up' ? 'text-green-500' : trend === 'down' ? 'text-red-500' : 'text-muted-foreground'}`}>
+          {trend === 'up' ? <ArrowUpRight className="h-3 w-3" /> : trend === 'down' ? <ArrowDownRight className="h-3 w-3" /> : null}
+        </div>
+      )}
+    </GlassCard>
+  );
+}
+
+function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
+  return (
+    <div className="mb-4">
+      <h3 className="text-lg font-serif font-semibold">{title}</h3>
+      {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
     </div>
   );
-};
+}
+
+function HealthScoreRing({ score, label }: { score: number; label: string }) {
+  const circumference = 2 * Math.PI * 45;
+  const strokeDashoffset = circumference - (score / 100) * circumference;
+  const color = score >= 70 ? '#10b981' : score >= 50 ? '#f59e0b' : '#ef4444';
+  
+  return (
+    <div className="flex flex-col items-center">
+      <div className="relative w-28 h-28">
+        <svg className="w-28 h-28 transform -rotate-90">
+          <circle cx="56" cy="56" r="45" stroke="currentColor" strokeWidth="8" fill="none" className="text-muted/20" />
+          <circle cx="56" cy="56" r="45" stroke={color} strokeWidth="8" fill="none" strokeLinecap="round" 
+            style={{ strokeDasharray: circumference, strokeDashoffset, transition: 'stroke-dashoffset 1s ease-in-out' }} />
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-2xl font-bold">{score}</span>
+        </div>
+      </div>
+      <span className="text-xs text-muted-foreground mt-2">{label}</span>
+    </div>
+  );
+}
 
 export default function Analysis() {
-  const MOCK_DATA = Array.from({ length: 30 }, (_, i) => ({
-    date: `Day ${i + 1}`,
-    revenue: Math.floor(Math.random() * 5000) + 3000,
-    occupancy: Math.floor(Math.random() * 30) + 60,
-  }));
+  const [_, setLocation] = useLocation();
+  
+  const { data: analytics, isLoading, error } = useQuery({
+    queryKey: ["comprehensive-analytics"],
+    queryFn: () => getComprehensiveAnalytics(),
+  });
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-muted-foreground">Loading comprehensive analytics...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error || !analytics) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <GlassCard className="p-8 max-w-md text-center">
+            <h3 className="text-xl font-semibold mb-2">No Data Available</h3>
+            <p className="text-muted-foreground mb-6">
+              Upload your hotel booking data to unlock comprehensive analytics with 70+ metrics.
+            </p>
+            <Button 
+              className="bg-primary hover:bg-primary/90 text-white"
+              onClick={() => setLocation("/upload")}
+              data-testid="button-upload-analytics"
+            >
+              Upload Data
+            </Button>
+          </GlassCard>
+        </div>
+      </Layout>
+    );
+  }
+
+  const { coreKPIs, revenueAnalytics, bookingAnalytics, guestAnalytics, cancellationAnalytics, 
+          operationalAnalytics, forecastingAnalytics, channelAnalytics, seasonalityAnalytics, performanceIndicators } = analytics;
+
+  const formatCurrency = (val: number) => `£${val.toLocaleString()}`;
+  const formatPercent = (val: number) => `${val.toFixed(1)}%`;
+
+  const channelRevenueData = Object.entries(revenueAnalytics.revenueByChannel).map(([name, value]) => ({ name, value }));
+  const monthlyRevenueData = Object.entries(revenueAnalytics.revenueByMonth).map(([month, revenue]) => ({ month, revenue }));
+  const bookingsByMonthData = Object.entries(bookingAnalytics.bookingsByMonth).map(([month, count]) => ({ month, count }));
+  const dayOfWeekData = Object.entries(bookingAnalytics.bookingsByDayOfWeek).map(([day, count]) => ({ day, count }));
+  const leadTimeData = bookingAnalytics.leadTimeDistribution;
+  const countryData = guestAnalytics.topSourceCountries.slice(0, 8);
+  const cancellationByLeadTime = cancellationAnalytics.cancellationRateByLeadTime;
+  const roomTypeData = Object.entries(operationalAnalytics.roomTypeUtilization).map(([type, count]) => ({ type, count }));
+  const channelMixData = channelAnalytics.channelMix;
 
   return (
     <Layout>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-serif font-bold">Detailed Reports</h1>
-          <p className="text-muted-foreground">A closer look at your hotel performance</p>
+          <h1 className="text-3xl font-serif font-bold" data-testid="text-analysis-title">Comprehensive Analytics</h1>
+          <p className="text-muted-foreground">70+ metrics for PhD-level hotel performance analysis</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm"><Calendar className="h-4 w-4 mr-2" /> Dec 2024</Button>
-          <Button variant="outline" size="sm"><Filter className="h-4 w-4 mr-2" /> Filter</Button>
-          <Button variant="outline" size="sm"><Share2 className="h-4 w-4 mr-2" /> Share</Button>
-          <Button size="sm" className="bg-primary text-white hover:bg-primary/90"><Download className="h-4 w-4 mr-2" /> Export</Button>
-        </div>
+        <Button size="sm" className="bg-primary text-white hover:bg-primary/90" data-testid="button-export">
+          <Download className="h-4 w-4 mr-2" /> Export Report
+        </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <ChartWidget 
-            title="Revenue & Room Usage Over Time" 
-            data={MOCK_DATA} 
-            dataKey="revenue" 
-            category="date"
-            color="#11b6e9" 
-            className="h-[400px]"
-          />
-          
-          <GlassCard>
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="font-serif font-semibold text-lg">Busiest Times</h3>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Low</span>
-                <div className="w-20 h-2 bg-gradient-to-r from-transparent to-primary rounded-full" />
-                <span className="text-xs text-muted-foreground">High</span>
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="bg-muted/50 p-1">
+          <TabsTrigger value="overview" data-testid="tab-overview">Overview</TabsTrigger>
+          <TabsTrigger value="revenue" data-testid="tab-revenue">Revenue</TabsTrigger>
+          <TabsTrigger value="bookings" data-testid="tab-bookings">Bookings</TabsTrigger>
+          <TabsTrigger value="guests" data-testid="tab-guests">Guests</TabsTrigger>
+          <TabsTrigger value="cancellations" data-testid="tab-cancellations">Cancellations</TabsTrigger>
+          <TabsTrigger value="operations" data-testid="tab-operations">Operations</TabsTrigger>
+          <TabsTrigger value="forecasting" data-testid="tab-forecasting">Forecasting</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+            <GlassCard className="lg:col-span-1 flex flex-col items-center justify-center p-6">
+              <HealthScoreRing score={performanceIndicators.overallHealthScore} label="Health Score" />
+              <div className="mt-4 text-center">
+                <span className={`text-sm font-medium px-3 py-1 rounded-full ${
+                  performanceIndicators.competitivePositionEstimate === 'leader' ? 'bg-green-500/20 text-green-600' :
+                  performanceIndicators.competitivePositionEstimate === 'challenger' ? 'bg-amber-500/20 text-amber-600' :
+                  'bg-red-500/20 text-red-600'
+                }`}>
+                  {performanceIndicators.competitivePositionEstimate.charAt(0).toUpperCase() + performanceIndicators.competitivePositionEstimate.slice(1)}
+                </span>
+              </div>
+            </GlassCard>
+            
+            <GlassCard className="lg:col-span-3 p-6">
+              <SectionHeader title="Performance Indicators" subtitle="Key health metrics at a glance" />
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-primary">{performanceIndicators.revenuePerformanceIndex}</div>
+                  <div className="text-xs text-muted-foreground">Revenue Index</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-500">{performanceIndicators.operationalEfficiencyScore}%</div>
+                  <div className="text-xs text-muted-foreground">Efficiency</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-500">{performanceIndicators.channelOptimizationScore}</div>
+                  <div className="text-xs text-muted-foreground">Channel Score</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-500">{performanceIndicators.pricingEffectivenessScore}</div>
+                  <div className="text-xs text-muted-foreground">Pricing Score</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-amber-500">{performanceIndicators.demandCaptureRate}%</div>
+                  <div className="text-xs text-muted-foreground">Demand Capture</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-cyan-500">{performanceIndicators.guestSatisfactionProxy}</div>
+                  <div className="text-xs text-muted-foreground">Guest Proxy</div>
+                </div>
+              </div>
+            </GlassCard>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <MetricCard title="Total Revenue" value={formatCurrency(coreKPIs.totalRevenue)} icon={DollarSign} />
+            <MetricCard title="Total Bookings" value={coreKPIs.totalBookings} subtitle={`${coreKPIs.confirmedBookings} confirmed`} icon={Calendar} />
+            <MetricCard title="ADR" value={formatCurrency(coreKPIs.averageDailyRate)} subtitle="Avg Daily Rate" icon={TrendingUp} />
+            <MetricCard title="RevPAR" value={formatCurrency(coreKPIs.revPAR)} subtitle="Revenue per room" icon={BarChart3} />
+            <MetricCard title="Occupancy" value={formatPercent(coreKPIs.occupancyRate)} icon={Building} />
+            <MetricCard title="Cancellation Rate" value={formatPercent(coreKPIs.cancellationRate)} icon={XCircle} />
+            <MetricCard title="Repeat Guests" value={formatPercent(coreKPIs.repeatGuestRate)} icon={Users} />
+            <MetricCard title="Avg Lead Time" value={`${coreKPIs.averageLeadTime} days`} icon={Clock} />
+            <MetricCard title="Avg Stay" value={`${coreKPIs.averageLengthOfStay} nights`} icon={Calendar} />
+            <MetricCard title="Room Nights" value={coreKPIs.totalRoomNights.toLocaleString()} icon={Building} />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <GlassCard className="p-6">
+              <SectionHeader title="Key Strengths" />
+              <div className="space-y-2">
+                {performanceIndicators.keyStrengths.map((strength, i) => (
+                  <div key={i} className="flex items-start gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                    <span className="text-sm">{strength}</span>
+                  </div>
+                ))}
+                {performanceIndicators.keyStrengths.length === 0 && (
+                  <p className="text-sm text-muted-foreground">Upload more data to identify strengths</p>
+                )}
+              </div>
+            </GlassCard>
+
+            <GlassCard className="p-6">
+              <SectionHeader title="Areas for Improvement" />
+              <div className="space-y-2">
+                {performanceIndicators.areasForImprovement.map((area, i) => (
+                  <div key={i} className="flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+                    <span className="text-sm">{area}</span>
+                  </div>
+                ))}
+                {performanceIndicators.areasForImprovement.length === 0 && (
+                  <p className="text-sm text-muted-foreground">No major issues detected</p>
+                )}
+              </div>
+            </GlassCard>
+
+            <GlassCard className="p-6">
+              <SectionHeader title="Actionable Insights" />
+              <div className="space-y-2">
+                {performanceIndicators.actionableInsights.slice(0, 4).map((insight, i) => (
+                  <div key={i} className="flex items-start gap-2">
+                    <Zap className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <span className="text-sm">{insight}</span>
+                  </div>
+                ))}
+              </div>
+            </GlassCard>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="revenue" className="space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <MetricCard title="Gross Revenue" value={formatCurrency(coreKPIs.totalRevenue)} icon={DollarSign} />
+            <MetricCard title="Net Revenue" value={formatCurrency(revenueAnalytics.netRevenueAfterCommissions)} subtitle="After commissions" icon={DollarSign} />
+            <MetricCard title="Commissions Paid" value={formatCurrency(revenueAnalytics.commissionsPaid)} icon={Percent} />
+            <MetricCard title="Revenue per Guest" value={formatCurrency(revenueAnalytics.revenuePerGuest)} icon={Users} />
+            <MetricCard title="Avg Daily Revenue" value={formatCurrency(revenueAnalytics.averageDailyRevenue)} icon={TrendingUp} />
+            <MetricCard title="Revenue/Booking" value={formatCurrency(coreKPIs.revenuePerBooking)} icon={BarChart3} />
+            <MetricCard title="Best Day" value={revenueAnalytics.highestRevenueDay.date} subtitle={formatCurrency(revenueAnalytics.highestRevenueDay.amount)} icon={TrendingUp} />
+            <MetricCard title="Lowest Day" value={revenueAnalytics.lowestRevenueDay.date} subtitle={formatCurrency(revenueAnalytics.lowestRevenueDay.amount)} icon={TrendingDown} />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <GlassCard className="p-6">
+              <SectionHeader title="Revenue by Channel" subtitle="Distribution across booking sources" />
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RechartsPie>
+                    <Pie data={channelRevenueData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}>
+                      {channelRevenueData.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                  </RechartsPie>
+                </ResponsiveContainer>
+              </div>
+            </GlassCard>
+
+            <GlassCard className="p-6">
+              <SectionHeader title="Monthly Revenue Trend" subtitle="Revenue over time" />
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={monthlyRevenueData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `£${(v/1000).toFixed(0)}k`} />
+                    <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                    <Area type="monotone" dataKey="revenue" stroke="#4B77A9" fill="#4B77A9" fillOpacity={0.3} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </GlassCard>
+          </div>
+
+          <GlassCard className="p-6">
+            <SectionHeader title="Channel Cost Analysis" subtitle="Commission impact by channel" />
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-muted">
+                    <th className="text-left py-3 font-medium">Channel</th>
+                    <th className="text-right py-3 font-medium">Gross Revenue</th>
+                    <th className="text-right py-3 font-medium">Commission</th>
+                    <th className="text-right py-3 font-medium">Net Revenue</th>
+                    <th className="text-right py-3 font-medium">Efficiency</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {channelAnalytics.channelCostAnalysis.map((channel, i) => (
+                    <tr key={i} className="border-b border-muted/50">
+                      <td className="py-3">{channel.channel}</td>
+                      <td className="text-right py-3">{formatCurrency(channel.grossRevenue)}</td>
+                      <td className="text-right py-3 text-red-500">{formatCurrency(channel.commission)}</td>
+                      <td className="text-right py-3 text-green-500">{formatCurrency(channel.netRevenue)}</td>
+                      <td className="text-right py-3">{channel.grossRevenue > 0 ? ((channel.netRevenue / channel.grossRevenue) * 100).toFixed(1) : 0}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </GlassCard>
+        </TabsContent>
+
+        <TabsContent value="bookings" className="space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <MetricCard title="Total Bookings" value={coreKPIs.totalBookings} icon={Calendar} />
+            <MetricCard title="Confirmed" value={coreKPIs.confirmedBookings} icon={CheckCircle} />
+            <MetricCard title="Cancelled" value={coreKPIs.cancelledBookings} icon={XCircle} />
+            <MetricCard title="Booking Velocity" value={`${bookingAnalytics.bookingVelocity}/day`} icon={Zap} />
+            <MetricCard title="Last Minute" value={formatPercent(bookingAnalytics.lastMinuteBookingsPercent)} subtitle="Within 3 days" icon={Clock} />
+            <MetricCard title="Advance Bookings" value={formatPercent(bookingAnalytics.advanceBookingsPercent)} subtitle="30+ days ahead" icon={Calendar} />
+            <MetricCard title="Peak Month" value={bookingAnalytics.peakBookingMonth} icon={TrendingUp} />
+            <MetricCard title="Slowest Month" value={bookingAnalytics.slowestBookingMonth} icon={TrendingDown} />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <GlassCard className="p-6">
+              <SectionHeader title="Bookings by Month" />
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={bookingsByMonthData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="month" tick={{ fontSize: 10 }} />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip />
+                    <Bar dataKey="count" fill="#bf5b20" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </GlassCard>
+
+            <GlassCard className="p-6">
+              <SectionHeader title="Bookings by Day of Week" />
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={dayOfWeekData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="day" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip />
+                    <Bar dataKey="count" fill="#4B77A9" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </GlassCard>
+          </div>
+
+          <GlassCard className="p-6">
+            <SectionHeader title="Lead Time Distribution" subtitle="How far in advance guests book" />
+            <div className="h-[250px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={leadTimeData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis type="number" tick={{ fontSize: 12 }} />
+                  <YAxis dataKey="range" type="category" tick={{ fontSize: 11 }} width={100} />
+                  <Tooltip formatter={(value: number, name) => name === 'count' ? value : `${value}%`} />
+                  <Bar dataKey="count" fill="#11b6e9" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </GlassCard>
+        </TabsContent>
+
+        <TabsContent value="guests" className="space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <MetricCard title="Guests Served" value={coreKPIs.guestsServed.toLocaleString()} icon={Users} />
+            <MetricCard title="Repeat Guests" value={guestAnalytics.repeatGuestCount} icon={Users} />
+            <MetricCard title="New Guests" value={guestAnalytics.newGuestCount} icon={Users} />
+            <MetricCard title="Avg Party Size" value={coreKPIs.averagePartySize.toFixed(1)} icon={Users} />
+            <MetricCard title="Loyalty Score" value={guestAnalytics.guestLoyaltyScore.toFixed(0)} icon={Target} />
+            <MetricCard title="Avg Guest Value" value={formatCurrency(guestAnalytics.averageGuestValue)} icon={DollarSign} />
+            <MetricCard title="High Value Guests" value={guestAnalytics.highValueGuestCount} icon={TrendingUp} />
+            <MetricCard title="Diversity Index" value={guestAnalytics.guestDiversityIndex.toFixed(2)} icon={Globe} />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <GlassCard className="p-6">
+              <SectionHeader title="Top Source Countries" />
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={countryData} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis type="number" tick={{ fontSize: 12 }} />
+                    <YAxis dataKey="country" type="category" tick={{ fontSize: 11 }} width={80} />
+                    <Tooltip />
+                    <Bar dataKey="count" fill="#10b981" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </GlassCard>
+
+            <GlassCard className="p-6">
+              <SectionHeader title="Guest Segments" />
+              <div className="space-y-4 mt-6">
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>Corporate vs Leisure</span>
+                    <span className="font-medium">{guestAnalytics.corporateVsLeisureRatio.toFixed(1)}:1</span>
+                  </div>
+                  <Progress value={guestAnalytics.corporateVsLeisureRatio * 20} className="h-2" />
+                </div>
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>Family Bookings</span>
+                    <span className="font-medium">{formatPercent(guestAnalytics.familyBookingsPercent)}</span>
+                  </div>
+                  <Progress value={guestAnalytics.familyBookingsPercent} className="h-2" />
+                </div>
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>Solo Travelers</span>
+                    <span className="font-medium">{formatPercent(guestAnalytics.soloTravelersPercent)}</span>
+                  </div>
+                  <Progress value={guestAnalytics.soloTravelersPercent} className="h-2" />
+                </div>
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>New vs Returning</span>
+                    <span className="font-medium">{guestAnalytics.newVsReturningRatio.toFixed(1)}:1</span>
+                  </div>
+                  <Progress value={Math.min(guestAnalytics.newVsReturningRatio * 20, 100)} className="h-2" />
+                </div>
+              </div>
+            </GlassCard>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="cancellations" className="space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <MetricCard title="Cancellation Rate" value={formatPercent(coreKPIs.cancellationRate)} icon={XCircle} />
+            <MetricCard title="Revenue Lost" value={formatCurrency(cancellationAnalytics.revenueLostToCancellations)} icon={TrendingDown} />
+            <MetricCard title="High Risk Bookings" value={cancellationAnalytics.highRiskBookingsCount} icon={AlertTriangle} />
+            <MetricCard title="Low Risk Bookings" value={cancellationAnalytics.lowRiskBookingsCount} icon={CheckCircle} />
+            <MetricCard title="Avg Cancel Lead Time" value={`${cancellationAnalytics.averageCancellationLeadTime.toFixed(0)} days`} icon={Clock} />
+            <MetricCard title="Predicted Rate" value={formatPercent(cancellationAnalytics.predictedCancellationRate)} icon={Target} />
+            <MetricCard title="Trend" value={cancellationAnalytics.cancellationTrend} icon={cancellationAnalytics.cancellationTrend === 'increasing' ? TrendingUp : TrendingDown} />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <GlassCard className="p-6">
+              <SectionHeader title="Cancellation Rate by Lead Time" subtitle="Longer lead times = higher risk?" />
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={cancellationByLeadTime}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="range" tick={{ fontSize: 10 }} angle={-45} textAnchor="end" height={80} />
+                    <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `${v}%`} />
+                    <Tooltip formatter={(value: number) => `${value}%`} />
+                    <Bar dataKey="rate" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </GlassCard>
+
+            <GlassCard className="p-6">
+              <SectionHeader title="Cancellation by Channel" />
+              <div className="space-y-3 mt-4">
+                {Object.entries(cancellationAnalytics.cancellationRateByChannel).slice(0, 6).map(([channel, rate]) => (
+                  <div key={channel}>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>{channel}</span>
+                      <span className={`font-medium ${rate > 20 ? 'text-red-500' : rate > 10 ? 'text-amber-500' : 'text-green-500'}`}>
+                        {rate}%
+                      </span>
+                    </div>
+                    <Progress value={rate} className="h-2" />
+                  </div>
+                ))}
+              </div>
+            </GlassCard>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="operations" className="space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <MetricCard title="Peak Check-in Day" value={operationalAnalytics.peakCheckInDay} icon={Calendar} />
+            <MetricCard title="Peak Check-out Day" value={operationalAnalytics.peakCheckOutDay} icon={Calendar} />
+            <MetricCard title="Busiest Month" value={operationalAnalytics.busiestMonth} icon={TrendingUp} />
+            <MetricCard title="Quietest Month" value={operationalAnalytics.quietestMonth} icon={TrendingDown} />
+            <MetricCard title="Avg Turnover Rate" value={formatPercent(operationalAnalytics.averageTurnoverRate)} icon={Zap} />
+            <MetricCard 
+              title="Staffing Need" 
+              value={operationalAnalytics.staffingRecommendation.charAt(0).toUpperCase() + operationalAnalytics.staffingRecommendation.slice(1)} 
+              icon={Users} 
+            />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <GlassCard className="p-6">
+              <SectionHeader title="Check-ins by Day of Week" />
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={Object.entries(operationalAnalytics.checkInsByDayOfWeek).map(([day, count]) => ({ day, count }))}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="day" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip />
+                    <Bar dataKey="count" fill="#10b981" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </GlassCard>
+
+            <GlassCard className="p-6">
+              <SectionHeader title="Room Type Utilization" />
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RechartsPie>
+                    <Pie data={roomTypeData} dataKey="count" nameKey="type" cx="50%" cy="50%" outerRadius={100} label={({ type, percent }) => `${type} (${(percent * 100).toFixed(0)}%)`}>
+                      {roomTypeData.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </RechartsPie>
+                </ResponsiveContainer>
+              </div>
+            </GlassCard>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="forecasting" className="space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <MetricCard title="Projected Revenue" value={formatCurrency(forecastingAnalytics.projectedMonthlyRevenue)} subtitle="Next month" icon={DollarSign} />
+            <MetricCard title="Projected Occupancy" value={formatPercent(forecastingAnalytics.projectedOccupancy)} icon={Building} />
+            <MetricCard title="Demand Trend" value={forecastingAnalytics.demandTrend.charAt(0).toUpperCase() + forecastingAnalytics.demandTrend.slice(1)} icon={forecastingAnalytics.demandTrend === 'growing' ? TrendingUp : TrendingDown} />
+            <MetricCard title="Seasonality" value={`${forecastingAnalytics.seasonalityStrength}%`} subtitle="Strength" icon={Calendar} />
+            <MetricCard title="Growth Potential" value={forecastingAnalytics.growthPotential.toUpperCase()} icon={Target} />
+            <MetricCard title="Risk Level" value={forecastingAnalytics.riskLevel.toUpperCase()} icon={AlertTriangle} />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <GlassCard className="p-6">
+              <SectionHeader title="Next Month Forecast" />
+              <div className="grid grid-cols-3 gap-4 mt-6">
+                <div className="text-center p-4 bg-muted/30 rounded-lg">
+                  <div className="text-2xl font-bold text-primary">{formatCurrency(forecastingAnalytics.nextMonthForecast.revenue)}</div>
+                  <div className="text-xs text-muted-foreground mt-1">Revenue</div>
+                </div>
+                <div className="text-center p-4 bg-muted/30 rounded-lg">
+                  <div className="text-2xl font-bold text-green-500">{forecastingAnalytics.nextMonthForecast.bookings}</div>
+                  <div className="text-xs text-muted-foreground mt-1">Bookings</div>
+                </div>
+                <div className="text-center p-4 bg-muted/30 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-500">{formatPercent(forecastingAnalytics.nextMonthForecast.occupancy)}</div>
+                  <div className="text-xs text-muted-foreground mt-1">Occupancy</div>
+                </div>
+              </div>
+            </GlassCard>
+
+            <GlassCard className="p-6">
+              <SectionHeader title="Year End Projection" />
+              <div className="grid grid-cols-2 gap-4 mt-6">
+                <div className="text-center p-4 bg-muted/30 rounded-lg">
+                  <div className="text-3xl font-bold text-primary">{formatCurrency(forecastingAnalytics.yearEndProjection.revenue)}</div>
+                  <div className="text-sm text-muted-foreground mt-1">Total Revenue</div>
+                </div>
+                <div className="text-center p-4 bg-muted/30 rounded-lg">
+                  <div className="text-3xl font-bold text-green-500">{forecastingAnalytics.yearEndProjection.bookings.toLocaleString()}</div>
+                  <div className="text-sm text-muted-foreground mt-1">Total Bookings</div>
+                </div>
+              </div>
+            </GlassCard>
+          </div>
+
+          <GlassCard className="p-6">
+            <SectionHeader title="Seasonality Analysis" subtitle="Peak and trough periods" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+              <div>
+                <h4 className="text-sm font-medium text-green-600 mb-2 flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" /> Seasonal Peaks
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {seasonalityAnalytics.seasonalPeaks.map((month, i) => (
+                    <span key={i} className="px-3 py-1 bg-green-500/10 text-green-600 rounded-full text-sm">{month}</span>
+                  ))}
+                  {seasonalityAnalytics.seasonalPeaks.length === 0 && (
+                    <span className="text-sm text-muted-foreground">No clear peaks identified</span>
+                  )}
+                </div>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-amber-600 mb-2 flex items-center gap-2">
+                  <TrendingDown className="h-4 w-4" /> Seasonal Troughs
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {seasonalityAnalytics.seasonalTroughs.map((month, i) => (
+                    <span key={i} className="px-3 py-1 bg-amber-500/10 text-amber-600 rounded-full text-sm">{month}</span>
+                  ))}
+                  {seasonalityAnalytics.seasonalTroughs.length === 0 && (
+                    <span className="text-sm text-muted-foreground">No clear troughs identified</span>
+                  )}
+                </div>
               </div>
             </div>
-            <Heatmap />
-          </GlassCard>
-        </div>
-
-        <div className="space-y-6">
-          <GlassCard>
-            <h3 className="font-serif font-semibold mb-4">Key Findings</h3>
-            <ul className="space-y-4">
-              <li className="flex gap-3">
-                <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-2 shrink-0" />
-                <p className="text-sm text-muted-foreground"><span className="text-foreground font-medium">Saturday Dinner Service</span> is consistently understaffed between 19:00 - 20:30, leading to a 15% drop in guest satisfaction scores.</p>
-              </li>
-              <li className="flex gap-3">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-2 shrink-0" />
-                <p className="text-sm text-muted-foreground"><span className="text-foreground font-medium">Deluxe Suites</span> are earning 22% more per room since the new pricing was introduced.</p>
-              </li>
-              <li className="flex gap-3">
-                <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0" />
-                <p className="text-sm text-muted-foreground"><span className="text-foreground font-medium">Guests are booking later</span> - now just 9 days ahead instead of 14. Consider earlier last-minute offers.</p>
-              </li>
-            </ul>
-          </GlassCard>
-
-          <GlassCard>
-            <h3 className="font-serif font-semibold mb-4">Guest Demographics</h3>
-            <div className="space-y-4">
-              {[
-                { label: "Business Travelers", val: 45, color: "bg-blue-500" },
-                { label: "Leisure Couples", val: 30, color: "bg-purple-500" },
-                { label: "Families", val: 15, color: "bg-green-500" },
-                { label: "Groups", val: 10, color: "bg-orange-500" },
-              ].map((item, i) => (
-                <div key={i}>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span>{item.label}</span>
-                    <span className="font-medium">{item.val}%</span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
-                    <div className={`h-full rounded-full ${item.color}`} style={{ width: `${item.val}%` }} />
-                  </div>
-                </div>
-              ))}
+            <div className="mt-6 grid grid-cols-2 gap-4">
+              <div className="p-4 bg-muted/30 rounded-lg text-center">
+                <div className="text-xl font-bold">{seasonalityAnalytics.bestPerformingQuarter}</div>
+                <div className="text-xs text-muted-foreground">Best Quarter</div>
+              </div>
+              <div className="p-4 bg-muted/30 rounded-lg text-center">
+                <div className="text-xl font-bold">{seasonalityAnalytics.worstPerformingQuarter}</div>
+                <div className="text-xs text-muted-foreground">Weakest Quarter</div>
+              </div>
             </div>
           </GlassCard>
-        </div>
-      </div>
+        </TabsContent>
+      </Tabs>
     </Layout>
   );
 }

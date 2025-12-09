@@ -7,6 +7,7 @@ import { insertBookingSchema, insertDatasetSchema, type InsertBooking } from "@s
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { autoMapColumns } from "./auto-mapper";
+import { calculateComprehensiveAnalytics } from "./analytics-service";
 
 const upload = multer({ 
   storage: multer.memoryStorage(),
@@ -218,6 +219,24 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("Get bookings error:", error);
       res.status(500).json({ error: error.message || "Failed to get bookings" });
+    }
+  });
+
+  // Get comprehensive analytics (70+ metrics)
+  app.get("/api/analytics/comprehensive", async (req, res) => {
+    try {
+      const datasetId = req.query.datasetId as string | undefined;
+      const bookings = await storage.getBookings(datasetId);
+      
+      if (!bookings || bookings.length === 0) {
+        return res.status(404).json({ error: "No booking data available" });
+      }
+      
+      const analytics = calculateComprehensiveAnalytics(bookings);
+      res.json(analytics);
+    } catch (error: any) {
+      console.error("Get comprehensive analytics error:", error);
+      res.status(500).json({ error: error.message || "Failed to get comprehensive analytics" });
     }
   });
 
