@@ -9,6 +9,7 @@ import { fromZodError } from "zod-validation-error";
 import { autoMapColumns } from "./auto-mapper";
 import { calculateComprehensiveAnalytics } from "./analytics-service";
 import { setupEmailAuth, isAuthenticated, verifyPassword, hashPassword } from "./emailAuth";
+import { extractGuestsFromBookings, calculateGuestAnalytics } from "./guest-analytics-service";
 
 // Simple in-memory rate limiter for login
 const loginRateLimiter = new Map<string, { count: number; resetTime: number }>();
@@ -343,6 +344,187 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("Get comprehensive analytics error:", error);
       res.status(500).json({ error: error.message || "Failed to get comprehensive analytics" });
+    }
+  });
+
+  // ===== GUEST ANALYTICS ENDPOINTS =====
+
+  // Extract and populate guests from bookings for a dataset
+  app.post("/api/guests/extract/:datasetId", isAuthenticated, async (req, res) => {
+    try {
+      const { datasetId } = req.params;
+      
+      // Get bookings for this dataset
+      const bookings = await storage.getBookings(datasetId);
+      
+      if (!bookings || bookings.length === 0) {
+        return res.status(404).json({ error: "No booking data found for this dataset" });
+      }
+      
+      // Delete existing guests for this dataset (re-extraction)
+      await storage.deleteGuestsByDataset(datasetId);
+      
+      // Extract guests from bookings
+      const guests = extractGuestsFromBookings(bookings, datasetId);
+      
+      // Store guests
+      await storage.createGuests(guests);
+      
+      res.json({
+        success: true,
+        guestsExtracted: guests.length,
+        bookingsProcessed: bookings.length,
+      });
+    } catch (error: any) {
+      console.error("Guest extraction error:", error);
+      res.status(500).json({ error: error.message || "Failed to extract guests" });
+    }
+  });
+
+  // Get guests list with pagination and search
+  app.get("/api/guests", async (req, res) => {
+    try {
+      const datasetId = req.query.datasetId as string;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const offset = parseInt(req.query.offset as string) || 0;
+      const search = req.query.search as string | undefined;
+      const sortBy = req.query.sortBy as string | undefined;
+      const sortOrder = (req.query.sortOrder as 'asc' | 'desc') || 'desc';
+      
+      if (!datasetId) {
+        return res.status(400).json({ error: "datasetId is required" });
+      }
+      
+      const result = await storage.getGuests(datasetId, { limit, offset, search, sortBy, sortOrder });
+      res.json(result);
+    } catch (error: any) {
+      console.error("Get guests error:", error);
+      res.status(500).json({ error: error.message || "Failed to get guests" });
+    }
+  });
+
+  // Get single guest profile
+  app.get("/api/guests/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const guest = await storage.getGuest(id);
+      
+      if (!guest) {
+        return res.status(404).json({ error: "Guest not found" });
+      }
+      
+      res.json(guest);
+    } catch (error: any) {
+      console.error("Get guest error:", error);
+      res.status(500).json({ error: error.message || "Failed to get guest" });
+    }
+  });
+
+  // Get guest count for a dataset
+  app.get("/api/guests/count/:datasetId", async (req, res) => {
+    try {
+      const { datasetId } = req.params;
+      const count = await storage.getGuestCount(datasetId);
+      res.json({ count });
+    } catch (error: any) {
+      console.error("Get guest count error:", error);
+      res.status(500).json({ error: error.message || "Failed to get guest count" });
+    }
+  });
+
+  // Get top guests by revenue
+  app.get("/api/guests/top/revenue", async (req, res) => {
+    try {
+      const datasetId = req.query.datasetId as string;
+      const limit = parseInt(req.query.limit as string) || 10;
+      
+      if (!datasetId) {
+        return res.status(400).json({ error: "datasetId is required" });
+      }
+      
+      const guests = await storage.getTopGuestsByRevenue(datasetId, limit);
+      res.json(guests);
+    } catch (error: any) {
+      console.error("Get top guests error:", error);
+      res.status(500).json({ error: error.message || "Failed to get top guests" });
+    }
+  });
+
+  // Get top guests by bookings
+  app.get("/api/guests/top/bookings", async (req, res) => {
+    try {
+      const datasetId = req.query.datasetId as string;
+      const limit = parseInt(req.query.limit as string) || 10;
+      
+      if (!datasetId) {
+        return res.status(400).json({ error: "datasetId is required" });
+      }
+      
+      const guests = await storage.getTopGuestsByBookings(datasetId, limit);
+      res.json(guests);
+    } catch (error: any) {
+      console.error("Get top guests error:", error);
+      res.status(500).json({ error: error.message || "Failed to get top guests" });
+    }
+  });
+
+  // Get guests by lifecycle stage
+  app.get("/api/guests/segments/lifecycle", async (req, res) => {
+    try {
+      const datasetId = req.query.datasetId as string;
+      
+      if (!datasetId) {
+        return res.status(400).json({ error: "datasetId is required" });
+      }
+      
+      const stages = await storage.getGuestsByLifecycleStage(datasetId);
+      res.json(stages);
+    } catch (error: any) {
+      console.error("Get lifecycle stages error:", error);
+      res.status(500).json({ error: error.message || "Failed to get lifecycle stages" });
+    }
+  });
+
+  // Get guests by loyalty tier
+  app.get("/api/guests/segments/loyalty", async (req, res) => {
+    try {
+      const datasetId = req.query.datasetId as string;
+      
+      if (!datasetId) {
+        return res.status(400).json({ error: "datasetId is required" });
+      }
+      
+      const tiers = await storage.getGuestsByLoyaltyTier(datasetId);
+      res.json(tiers);
+    } catch (error: any) {
+      console.error("Get loyalty tiers error:", error);
+      res.status(500).json({ error: error.message || "Failed to get loyalty tiers" });
+    }
+  });
+
+  // Get comprehensive guest analytics (all 36 features)
+  app.get("/api/guests/analytics/comprehensive", async (req, res) => {
+    try {
+      const datasetId = req.query.datasetId as string;
+      
+      if (!datasetId) {
+        return res.status(400).json({ error: "datasetId is required" });
+      }
+      
+      // Get guests and bookings for the dataset
+      const { guests } = await storage.getGuests(datasetId, { limit: 10000 });
+      const bookings = await storage.getBookings(datasetId);
+      
+      if (!guests || guests.length === 0) {
+        return res.status(404).json({ error: "No guest data available. Please extract guests first." });
+      }
+      
+      // Calculate comprehensive guest analytics
+      const analytics = calculateGuestAnalytics(guests, bookings);
+      res.json(analytics);
+    } catch (error: any) {
+      console.error("Get guest analytics error:", error);
+      res.status(500).json({ error: error.message || "Failed to get guest analytics" });
     }
   });
 
