@@ -106,6 +106,66 @@ export const analyticsCache = pgTable("analytics_cache", {
   computedAt: timestamp("computed_at").defaultNow().notNull(),
 });
 
+// Guests Table - normalized guest profiles with analytics
+export const guests = pgTable("guests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  datasetId: varchar("dataset_id").notNull(),
+  
+  // Identity
+  name: text("name").notNull(),
+  normalizedName: text("normalized_name").notNull(), // lowercase, trimmed for dedup
+  country: text("country"),
+  
+  // Lifecycle
+  firstBookingDate: date("first_booking_date"),
+  lastBookingDate: date("last_booking_date"),
+  totalBookings: integer("total_bookings").default(0),
+  cancelledBookings: integer("cancelled_bookings").default(0),
+  
+  // Value Metrics
+  totalRevenue: decimal("total_revenue", { precision: 12, scale: 2 }).default("0"),
+  averageSpend: decimal("average_spend", { precision: 10, scale: 2 }).default("0"),
+  
+  // RFM Scores (1-5 scale)
+  recencyScore: integer("recency_score").default(1),
+  frequencyScore: integer("frequency_score").default(1),
+  monetaryScore: integer("monetary_score").default(1),
+  rfmScore: integer("rfm_score").default(3), // Combined RFM
+  
+  // Behavioral
+  preferredChannel: text("preferred_channel"),
+  preferredRoomType: text("preferred_room_type"),
+  avgLeadTime: decimal("avg_lead_time", { precision: 6, scale: 1 }).default("0"),
+  avgLengthOfStay: decimal("avg_length_of_stay", { precision: 6, scale: 1 }).default("0"),
+  weekendRatio: decimal("weekend_ratio", { precision: 5, scale: 2 }).default("0"), // 0-1
+  
+  // Risk Metrics
+  cancellationRate: decimal("cancellation_rate", { precision: 5, scale: 2 }).default("0"),
+  modificationCount: integer("modification_count").default(0),
+  
+  // Segmentation
+  lifecycleStage: text("lifecycle_stage").default("first_timer"), // first_timer, returning, loyal, champion, at_risk, churned
+  loyaltyTier: text("loyalty_tier").default("bronze"), // bronze, silver, gold, platinum
+  guestType: text("guest_type").default("leisure"), // corporate, leisure
+  travelType: text("travel_type").default("solo"), // solo, couple, family, group
+  
+  // Predictive Scores (0-100)
+  clvScore: decimal("clv_score", { precision: 10, scale: 2 }).default("0"),
+  churnRiskScore: integer("churn_risk_score").default(50),
+  upsellPropensity: integer("upsell_propensity").default(50),
+  retentionProbability: integer("retention_probability").default(50),
+  ambassadorScore: integer("ambassador_score").default(50),
+  
+  // Timestamps
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("IDX_guest_dataset").on(table.datasetId),
+  index("IDX_guest_normalized_name").on(table.normalizedName),
+  index("IDX_guest_rfm").on(table.rfmScore),
+  index("IDX_guest_clv").on(table.clvScore),
+]);
+
 // Insert Schemas
 export const insertBookingSchema = createInsertSchema(bookings).omit({
   id: true,
@@ -124,6 +184,12 @@ export const insertAnalyticsCacheSchema = createInsertSchema(analyticsCache).omi
   computedAt: true,
 });
 
+export const insertGuestSchema = createInsertSchema(guests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
@@ -133,3 +199,6 @@ export type InsertDataset = z.infer<typeof insertDatasetSchema>;
 
 export type AnalyticsCache = typeof analyticsCache.$inferSelect;
 export type InsertAnalyticsCache = z.infer<typeof insertAnalyticsCacheSchema>;
+
+export type Guest = typeof guests.$inferSelect;
+export type InsertGuest = z.infer<typeof insertGuestSchema>;

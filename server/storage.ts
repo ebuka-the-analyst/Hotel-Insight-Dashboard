@@ -1,6 +1,6 @@
 import { db } from "./db";
-import { bookings, datasets, analyticsCache, users, type Booking, type InsertBooking, type Dataset, type InsertDataset, type AnalyticsCache, type InsertAnalyticsCache, type User, type UpsertUser } from "@shared/schema";
-import { eq, sql, and, gte, lte, desc } from "drizzle-orm";
+import { bookings, datasets, analyticsCache, users, guests, type Booking, type InsertBooking, type Dataset, type InsertDataset, type AnalyticsCache, type InsertAnalyticsCache, type User, type UpsertUser, type Guest, type InsertGuest } from "@shared/schema";
+import { eq, sql, and, gte, lte, desc, asc, ilike } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -27,6 +27,19 @@ export interface IStorage {
   // Analytics cache operations
   getCachedAnalytics(datasetId: string, metricType: string): Promise<AnalyticsCache | undefined>;
   setCachedAnalytics(data: InsertAnalyticsCache): Promise<AnalyticsCache>;
+  
+  // Guest operations
+  createGuests(guestData: InsertGuest[]): Promise<void>;
+  getGuests(datasetId: string, options?: { limit?: number; offset?: number; search?: string; sortBy?: string; sortOrder?: 'asc' | 'desc' }): Promise<{ guests: Guest[]; total: number }>;
+  getGuest(id: string): Promise<Guest | undefined>;
+  getGuestByName(datasetId: string, normalizedName: string): Promise<Guest | undefined>;
+  updateGuest(id: string, data: Partial<InsertGuest>): Promise<Guest | undefined>;
+  deleteGuestsByDataset(datasetId: string): Promise<void>;
+  getGuestCount(datasetId: string): Promise<number>;
+  getTopGuestsByRevenue(datasetId: string, limit?: number): Promise<Guest[]>;
+  getTopGuestsByBookings(datasetId: string, limit?: number): Promise<Guest[]>;
+  getGuestsByLifecycleStage(datasetId: string): Promise<{ stage: string; count: number }[]>;
+  getGuestsByLoyaltyTier(datasetId: string): Promise<{ tier: string; count: number; avgRevenue: number }[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -290,6 +303,130 @@ export class DatabaseStorage implements IStorage {
       channels: [],
       segments: [],
     };
+  }
+
+  // Guest operations
+  async createGuests(guestData: InsertGuest[]): Promise<void> {
+    if (guestData.length === 0) return;
+    
+    const batchSize = 100;
+    for (let i = 0; i < guestData.length; i += batchSize) {
+      const batch = guestData.slice(i, i + batchSize);
+      await db.insert(guests).values(batch);
+    }
+  }
+
+  async getGuests(datasetId: string, options?: { limit?: number; offset?: number; search?: string; sortBy?: string; sortOrder?: 'asc' | 'desc' }): Promise<{ guests: Guest[]; total: number }> {
+    const limit = options?.limit || 50;
+    const offset = options?.offset || 0;
+    
+    let conditions = [eq(guests.datasetId, datasetId)];
+    
+    if (options?.search) {
+      conditions.push(ilike(guests.name, `%${options.search}%`));
+    }
+    
+    const [countResult] = await db.select({ count: sql<number>`count(*)` })
+      .from(guests)
+      .where(and(...conditions));
+    
+    const total = Number(countResult?.count || 0);
+    
+    let query = db.select().from(guests).where(and(...conditions));
+    
+    const sortOrder = options?.sortOrder === 'asc' ? asc : desc;
+    const sortBy = options?.sortBy || 'totalRevenue';
+    
+    if (sortBy === 'totalRevenue') {
+      query = query.orderBy(sortOrder(guests.totalRevenue));
+    } else if (sortBy === 'totalBookings') {
+      query = query.orderBy(sortOrder(guests.totalBookings));
+    } else if (sortBy === 'name') {
+      query = query.orderBy(sortOrder(guests.name));
+    } else if (sortBy === 'rfmScore') {
+      query = query.orderBy(sortOrder(guests.rfmScore));
+    } else if (sortBy === 'clvScore') {
+      query = query.orderBy(sortOrder(guests.clvScore));
+    } else {
+      query = query.orderBy(desc(guests.totalRevenue));
+    }
+    
+    const result = await query.limit(limit).offset(offset);
+    
+    return { guests: result, total };
+  }
+
+  async getGuest(id: string): Promise<Guest | undefined> {
+    const [guest] = await db.select().from(guests).where(eq(guests.id, id));
+    return guest;
+  }
+
+  async getGuestByName(datasetId: string, normalizedName: string): Promise<Guest | undefined> {
+    const [guest] = await db.select().from(guests)
+      .where(and(eq(guests.datasetId, datasetId), eq(guests.normalizedName, normalizedName)));
+    return guest;
+  }
+
+  async updateGuest(id: string, data: Partial<InsertGuest>): Promise<Guest | undefined> {
+    const [updated] = await db.update(guests)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(guests.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteGuestsByDataset(datasetId: string): Promise<void> {
+    await db.delete(guests).where(eq(guests.datasetId, datasetId));
+  }
+
+  async getGuestCount(datasetId: string): Promise<number> {
+    const [result] = await db.select({ count: sql<number>`count(*)` })
+      .from(guests)
+      .where(eq(guests.datasetId, datasetId));
+    return Number(result?.count || 0);
+  }
+
+  async getTopGuestsByRevenue(datasetId: string, limit: number = 10): Promise<Guest[]> {
+    return await db.select().from(guests)
+      .where(eq(guests.datasetId, datasetId))
+      .orderBy(desc(guests.totalRevenue))
+      .limit(limit);
+  }
+
+  async getTopGuestsByBookings(datasetId: string, limit: number = 10): Promise<Guest[]> {
+    return await db.select().from(guests)
+      .where(eq(guests.datasetId, datasetId))
+      .orderBy(desc(guests.totalBookings))
+      .limit(limit);
+  }
+
+  async getGuestsByLifecycleStage(datasetId: string): Promise<{ stage: string; count: number }[]> {
+    const result = await db.select({
+      stage: guests.lifecycleStage,
+      count: sql<number>`count(*)`
+    })
+      .from(guests)
+      .where(eq(guests.datasetId, datasetId))
+      .groupBy(guests.lifecycleStage);
+    
+    return result.map(r => ({ stage: r.stage || 'unknown', count: Number(r.count) }));
+  }
+
+  async getGuestsByLoyaltyTier(datasetId: string): Promise<{ tier: string; count: number; avgRevenue: number }[]> {
+    const result = await db.select({
+      tier: guests.loyaltyTier,
+      count: sql<number>`count(*)`,
+      avgRevenue: sql<number>`avg(${guests.totalRevenue})`
+    })
+      .from(guests)
+      .where(eq(guests.datasetId, datasetId))
+      .groupBy(guests.loyaltyTier);
+    
+    return result.map(r => ({ 
+      tier: r.tier || 'bronze', 
+      count: Number(r.count),
+      avgRevenue: Number(r.avgRevenue || 0)
+    }));
   }
 }
 
