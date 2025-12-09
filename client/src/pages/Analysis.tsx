@@ -41,7 +41,7 @@ const Heatmap = () => {
                     }}
                   >
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-black/80 text-white text-xs p-2 rounded whitespace-nowrap z-20">
-                      {day} {h}:00 - {(intensity * 100).toFixed(0)}% Occupancy
+                      {day} {h}:00 - {(intensity * 100).toFixed(0)}% full
                     </div>
                   </div>
                 );
@@ -65,8 +65,8 @@ export default function Analysis() {
     <Layout>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-serif font-bold">Deep Analysis</h1>
-          <p className="text-muted-foreground">Detailed breakdown of operational metrics</p>
+          <h1 className="text-3xl font-serif font-bold">Detailed Reports</h1>
+          <p className="text-muted-foreground">A closer look at your hotel performance</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm"><Calendar className="h-4 w-4 mr-2" /> Dec 2024</Button>
@@ -79,7 +79,7 @@ export default function Analysis() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <ChartWidget 
-            title="Revenue vs Occupancy Correlation" 
+            title="Revenue & Room Usage Over Time" 
             data={MOCK_DATA} 
             dataKey="revenue" 
             category="date"
@@ -89,7 +89,7 @@ export default function Analysis() {
           
           <GlassCard>
             <div className="flex items-center justify-between mb-6">
-              <h3 className="font-serif font-semibold text-lg">Occupancy Heatmap</h3>
+              <h3 className="font-serif font-semibold text-lg">Busiest Times</h3>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground">Low</span>
                 <div className="w-20 h-2 bg-gradient-to-r from-transparent to-primary rounded-full" />
@@ -110,11 +110,11 @@ export default function Analysis() {
               </li>
               <li className="flex gap-3">
                 <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-2 shrink-0" />
-                <p className="text-sm text-muted-foreground"><span className="text-foreground font-medium">Deluxe Suites</span> have seen a 22% increase in RevPAR since the new pricing strategy was implemented.</p>
+                <p className="text-sm text-muted-foreground"><span className="text-foreground font-medium">Deluxe Suites</span> are earning 22% more per room since the new pricing was introduced.</p>
               </li>
               <li className="flex gap-3">
                 <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0" />
-                <p className="text-sm text-muted-foreground"><span className="text-foreground font-medium">Booking Lead Time</span> has decreased from 14 days to 9 days. Consider launching last-minute offers earlier.</p>
+                <p className="text-sm text-muted-foreground"><span className="text-foreground font-medium">Guests are booking later</span> - now just 9 days ahead instead of 14. Consider earlier last-minute offers.</p>
               </li>
             </ul>
           </GlassCard>

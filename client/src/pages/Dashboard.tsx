@@ -102,10 +102,10 @@ export default function Dashboard() {
             </div>
             <p className="text-sm text-foreground/80 leading-relaxed">
               {kpis.totalBookings > 0 
-                ? `You have ${kpis.totalBookings} bookings with an average daily rate of ${formatCurrency(kpis.averageDailyRate)}. ${
+                ? `You have ${kpis.totalBookings} bookings with an average price of ${formatCurrency(kpis.averageDailyRate)} per night. ${
                     kpis.cancellationRate > 10 
-                      ? `Your cancellation rate is ${formatPercentage(kpis.cancellationRate)}, which is higher than average.`
-                      : `Your cancellation rate is ${formatPercentage(kpis.cancellationRate)}, which is excellent.`
+                      ? `${formatPercentage(kpis.cancellationRate)} of bookings were cancelled, which is higher than usual.`
+                      : `Only ${formatPercentage(kpis.cancellationRate)} of bookings were cancelled - that's great!`
                   }`
                 : "Upload more data to get personalized insights."
               }
@@ -126,11 +126,11 @@ export default function Dashboard() {
           subtext={`${kpis.totalBookings} bookings`}
         />
         <KPICard 
-          title="Average Daily Rate" 
+          title="Price Per Night" 
           value={formatCurrency(kpis.averageDailyRate)} 
           change={2.1} 
           icon={<TrendingUp className="h-6 w-6 text-secondary" />}
-          subtext="ADR per booking"
+          subtext="Average room price"
         />
         <KPICard 
           title="Cancellation Rate" 
@@ -189,31 +189,31 @@ export default function Dashboard() {
             {[
               { 
                 agent: "Sterling", 
-                title: "Average Lead Time", 
-                text: `Your average booking lead time is ${kpis.averageLeadTime.toFixed(0)} days. ${
+                title: "How Far Ahead Guests Book", 
+                text: `Guests typically book ${kpis.averageLeadTime.toFixed(0)} days before arriving. ${
                   kpis.averageLeadTime > 30 
-                    ? "Consider implementing early bird discounts." 
-                    : "Your guests tend to book last-minute."
+                    ? "You could offer early booking rewards!" 
+                    : "Most guests are booking last-minute."
                 }`, 
                 time: "2h ago" 
               },
               { 
                 agent: "Atlas", 
-                title: "Revenue Performance", 
-                text: `Total revenue of ${formatCurrency(kpis.totalRevenue)} across ${kpis.totalBookings} bookings. ${
+                title: "Earnings Overview", 
+                text: `You've earned ${formatCurrency(kpis.totalRevenue)} from ${kpis.totalBookings} bookings. ${
                   kpis.averageDailyRate > 100 
-                    ? "Your ADR is strong." 
-                    : "Consider reviewing your pricing strategy."
+                    ? "Your room prices are performing well." 
+                    : "You might want to review your room pricing."
                 }`, 
                 time: "5h ago" 
               },
               { 
                 agent: "Sage", 
-                title: "Guest Retention", 
-                text: `${formatPercentage(kpis.repeatGuestRate)} of your guests are returning. ${
+                title: "Returning Guests", 
+                text: `${formatPercentage(kpis.repeatGuestRate)} of your guests have stayed before. ${
                   kpis.repeatGuestRate > 20 
-                    ? "Excellent loyalty! Keep it up." 
-                    : "Consider implementing a loyalty program."
+                    ? "Great loyalty! Keep it up." 
+                    : "A loyalty program could help bring guests back."
                 }`, 
                 time: "1d ago" 
               },
@@ -239,9 +239,9 @@ export default function Dashboard() {
             <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center mb-6">
               <Sparkles className="h-6 w-6 text-white" />
             </div>
-            <h3 className="font-serif text-2xl font-bold mb-2">AutoInsight Lab</h3>
+            <h3 className="font-serif text-2xl font-bold mb-2">Smart Insights</h3>
             <p className="text-white/80 mb-6 text-sm">
-              Unlock the full power of predictive analytics. Upload your historical CSVs to train custom models.
+              See what's coming next. Upload your booking history to discover patterns and trends.
             </p>
           </div>
           

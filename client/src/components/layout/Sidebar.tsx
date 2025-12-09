@@ -18,10 +18,10 @@ import hyattLogo from "@assets/Hyatt_Place_logo.svg_1765276830551.png";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Overview", href: "/" },
-  { icon: PieChart, label: "Analysis", href: "/analysis" },
-  { icon: Microscope, label: "Deep Dive (PhD)", href: "/research" },
-  { icon: Bot, label: "AI Insights", href: "/agents" },
-  { icon: Upload, label: "Data Source", href: "/upload" },
+  { icon: PieChart, label: "Reports", href: "/analysis" },
+  { icon: Microscope, label: "Advanced Insights", href: "/research" },
+  { icon: Bot, label: "AI Helpers", href: "/agents" },
+  { icon: Upload, label: "Upload Data", href: "/upload" },
   { icon: Users, label: "Team", href: "/team" },
   { icon: Settings, label: "Settings", href: "/settings" },
 ];

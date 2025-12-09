@@ -9,23 +9,23 @@ const SYSTEM_FIELDS = [
   { key: "bookingRef", label: "Booking Reference", required: true },
   { key: "guestName", label: "Guest Name", required: false },
   { key: "guestCountry", label: "Guest Country", required: false },
-  { key: "checkInDate", label: "Check-In Date", required: true },
-  { key: "checkOutDate", label: "Check-Out Date", required: true },
-  { key: "bookingDate", label: "Booking Date", required: false },
-  { key: "roomCategory", label: "Room Category", required: false },
+  { key: "checkInDate", label: "Arrival Date", required: true },
+  { key: "checkOutDate", label: "Departure Date", required: true },
+  { key: "bookingDate", label: "Date Booked", required: false },
+  { key: "roomCategory", label: "Room Type", required: false },
   { key: "roomNum", label: "Room Number", required: false },
-  { key: "adults", label: "Adults", required: false },
-  { key: "children", label: "Children", required: false },
-  { key: "totalAmount", label: "Total Amount", required: true },
-  { key: "adr", label: "ADR (Average Daily Rate)", required: false },
-  { key: "depositType", label: "Deposit Type", required: false },
-  { key: "channel", label: "Booking Channel", required: true },
-  { key: "marketSegment", label: "Market Segment", required: false },
+  { key: "adults", label: "Number of Adults", required: false },
+  { key: "children", label: "Number of Children", required: false },
+  { key: "totalAmount", label: "Total Price", required: true },
+  { key: "adr", label: "Price Per Night", required: false },
+  { key: "depositType", label: "Payment Type", required: false },
+  { key: "channel", label: "Where Booking Came From", required: true },
+  { key: "marketSegment", label: "Guest Type", required: false },
   { key: "bookingStatus", label: "Booking Status", required: true },
-  { key: "leadTime", label: "Lead Time (days)", required: false },
-  { key: "lengthOfStay", label: "Length of Stay", required: false },
-  { key: "isRepeatedGuest", label: "Repeated Guest", required: false },
-  { key: "previousBookings", label: "Previous Bookings", required: false },
+  { key: "leadTime", label: "Days Booked in Advance", required: false },
+  { key: "lengthOfStay", label: "Number of Nights", required: false },
+  { key: "isRepeatedGuest", label: "Returning Guest", required: false },
+  { key: "previousBookings", label: "Past Stays", required: false },
 ];
 
 interface DataMapperProps {
@@ -82,8 +82,8 @@ export function DataMapper({ headers, file, fileName, onComplete, onCancel, onMa
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-serif font-bold" data-testid="text-mapping-title">Map Your Columns</h2>
-          <p className="text-muted-foreground">Match your Excel headers to our analytics engine.</p>
+          <h2 className="text-2xl font-serif font-bold" data-testid="text-mapping-title">Match Your Columns</h2>
+          <p className="text-muted-foreground">Tell us which columns in your file match our fields.</p>
           <p className="text-xs text-muted-foreground mt-1">File: {fileName}</p>
         </div>
         <div className="text-right">
@@ -99,9 +99,9 @@ export function DataMapper({ headers, file, fileName, onComplete, onCancel, onMa
 
       <GlassCard className="p-0 overflow-hidden mb-6">
         <div className="grid grid-cols-12 gap-4 p-4 bg-muted/30 border-b border-border text-sm font-medium text-muted-foreground">
-          <div className="col-span-5">System Field</div>
+          <div className="col-span-5">What We Need</div>
           <div className="col-span-2 text-center"><ArrowRight className="h-4 w-4 mx-auto opacity-50" /></div>
-          <div className="col-span-5">Your Excel Header</div>
+          <div className="col-span-5">Your Column Name</div>
         </div>
         
         <div className="max-h-[400px] overflow-y-auto p-4 space-y-3">

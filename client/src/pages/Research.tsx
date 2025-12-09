@@ -80,8 +80,8 @@ export default function Research() {
       <div className="flex flex-col gap-4 mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-serif font-bold text-foreground">Research Intelligence</h1>
-            <p className="text-muted-foreground">PhD-level analytics for strategic decision making.</p>
+            <h1 className="text-3xl font-serif font-bold text-foreground">Advanced Insights</h1>
+            <p className="text-muted-foreground">Discover deeper patterns to help you make smarter decisions.</p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => setTimeRange("month")}>This Month</Button>
@@ -93,13 +93,13 @@ export default function Research() {
       <Tabs defaultValue="revenue" className="w-full">
         <TabsList className="bg-muted/50 p-1 rounded-xl mb-6">
           <TabsTrigger value="revenue" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
-            <DollarSign className="h-4 w-4 mr-2" /> Revenue Optimization
+            <DollarSign className="h-4 w-4 mr-2" /> Earnings
           </TabsTrigger>
           <TabsTrigger value="risk" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
-            <Activity className="h-4 w-4 mr-2" /> Operational Risk
+            <Activity className="h-4 w-4 mr-2" /> Risk Alerts
           </TabsTrigger>
           <TabsTrigger value="guests" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
-            <Users className="h-4 w-4 mr-2" /> Guest Lifecycle
+            <Users className="h-4 w-4 mr-2" /> Guest Patterns
           </TabsTrigger>
         </TabsList>
 
@@ -107,8 +107,8 @@ export default function Research() {
         <TabsContent value="revenue" className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <GlassCard>
-              <h3 className="font-serif font-semibold mb-2">Net Revenue Efficiency (NRE)</h3>
-              <p className="text-xs text-muted-foreground mb-6">True profitability after distribution costs.</p>
+              <h3 className="font-serif font-semibold mb-2">What You Actually Keep</h3>
+              <p className="text-xs text-muted-foreground mb-6">Your real profit after booking fees are taken out.</p>
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={channelPerformance}>
@@ -125,20 +125,20 @@ export default function Research() {
               <div className="mt-4 p-3 bg-red-500/5 border border-red-500/20 rounded-lg flex gap-3">
                 <AlertCircle className="h-5 w-5 text-red-500 shrink-0" />
                 <p className="text-xs text-muted-foreground">
-                  <span className="font-bold text-red-600">Critical Insight:</span> OTA commissions are eroding 18% of gross margin. Shift 5% of inventory to Direct to reclaim £42k annually.
+                  <span className="font-bold text-red-600">Important:</span> Booking websites are taking 18% of your earnings in fees. Getting more direct bookings could save you £42k per year.
                 </p>
               </div>
             </GlassCard>
 
             <GlassCard>
-              <h3 className="font-serif font-semibold mb-2">Price Elasticity Demand Curve</h3>
-              <p className="text-xs text-muted-foreground mb-6">Occupancy sensitivity to Average Daily Rate changes.</p>
+              <h3 className="font-serif font-semibold mb-2">Price vs Bookings</h3>
+              <p className="text-xs text-muted-foreground mb-6">How room price affects how many guests book.</p>
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
-                    <XAxis type="number" dataKey="rate" name="ADR" unit="£" />
-                    <YAxis type="number" dataKey="occupancy" name="Occupancy" unit="%" />
+                    <XAxis type="number" dataKey="rate" name="Price" unit="£" />
+                    <YAxis type="number" dataKey="occupancy" name="Rooms Filled" unit="%" />
                     <Tooltip cursor={{ strokeDasharray: '3 3' }} />
                     <Scatter name="Demand" data={demandCurveData} fill="hsl(var(--secondary))" line shape="circle" />
                   </ScatterChart>
@@ -152,17 +152,17 @@ export default function Research() {
         <TabsContent value="risk" className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <GlassCard className="lg:col-span-1">
-              <h3 className="font-serif font-semibold mb-4">Cancellation Risk Heatmap</h3>
-              <p className="text-xs text-muted-foreground mb-6">Probability of cancellation by Lead Time & Channel.</p>
+              <h3 className="font-serif font-semibold mb-4">Cancellation Risk</h3>
+              <p className="text-xs text-muted-foreground mb-6">Chance of cancellation based on when and where guests book.</p>
               <RiskMatrix />
               <div className="mt-6 text-xs text-muted-foreground">
-                <span className="font-bold text-foreground">High Risk Zone:</span> OTA bookings made 7-30 days out have a 35% probability of churn.
+                <span className="font-bold text-foreground">Watch Out:</span> Bookings from travel websites made 7-30 days ahead have a 35% chance of being cancelled.
               </div>
             </GlassCard>
 
             <GlassCard className="lg:col-span-2">
-              <h3 className="font-serif font-semibold mb-2">Operational Strain Index</h3>
-              <p className="text-xs text-muted-foreground mb-6">Daily load score based on Turnover + Occupancy + Cancellations.</p>
+              <h3 className="font-serif font-semibold mb-2">How Busy Each Day Gets</h3>
+              <p className="text-xs text-muted-foreground mb-6">A score showing daily workload from check-ins, check-outs, and cancellations.</p>
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={data.slice(0, 30)}>
@@ -188,7 +188,7 @@ export default function Research() {
         <TabsContent value="guests" className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <GlassCard>
-              <h3 className="font-serif font-semibold mb-4">Customer Lifetime Value (CLV) Proxy</h3>
+              <h3 className="font-serif font-semibold mb-4">Guest Worth Over Time</h3>
               <div className="space-y-4">
                 {[
                   { segment: "Business Elite", clv: "£12,400", trend: "+12%", color: "bg-blue-500" },
@@ -213,12 +213,12 @@ export default function Research() {
             </GlassCard>
             
             <GlassCard>
-              <h3 className="font-serif font-semibold mb-4">Diversification Risk (HHI Index)</h3>
+              <h3 className="font-serif font-semibold mb-4">Where Your Guests Come From</h3>
               <div className="flex flex-col items-center justify-center h-[200px]">
                 <div className="text-5xl font-bold text-foreground mb-2">0.18</div>
-                <div className="text-sm font-medium text-green-600 bg-green-500/10 px-3 py-1 rounded-full">Low Concentration Risk</div>
+                <div className="text-sm font-medium text-green-600 bg-green-500/10 px-3 py-1 rounded-full">Healthy Mix</div>
                 <p className="text-center text-xs text-muted-foreground mt-4 max-w-[250px]">
-                  Your guest mix is well diversified across 12 countries. No single market exceeds 20% share.
+                  Your guests come from 12 different countries. No single country makes up more than 20% of bookings.
                 </p>
               </div>
             </GlassCard>

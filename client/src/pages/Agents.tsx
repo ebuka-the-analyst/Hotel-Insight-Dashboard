@@ -12,9 +12,9 @@ export default function Agents() {
     <Layout>
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-serif font-bold mb-2" data-testid="text-agents-title">AI Insights</h1>
+          <h1 className="text-4xl font-serif font-bold mb-2" data-testid="text-agents-title">AI Helpers</h1>
           <p className="text-muted-foreground">
-            Chat with our AI agents to get personalized insights about your hotel data.
+            Chat with our AI assistants to get answers about your hotel's performance.
           </p>
         </div>
 
@@ -28,7 +28,7 @@ export default function Agents() {
                   <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">AI Assistant</span>
                 </div>
                 <p className="text-foreground/80">
-                  Hello! I'm Nova, your hotel analytics assistant. Ask me anything about your bookings, revenue trends, or guest patterns.
+                  Hello! I'm Nova, your hotel assistant. Ask me anything about your bookings, earnings, or guests.
                 </p>
               </div>
             </div>
@@ -38,7 +38,7 @@ export default function Agents() {
                 <AgentAvatar name="Nova" className="w-8 h-8" />
                 <div className="flex-1">
                   <p className="text-sm text-foreground/80">
-                    I can help you understand your booking patterns, identify revenue opportunities, and provide recommendations for improving your hotel's performance. What would you like to know?
+                    I can help you understand your bookings, find ways to earn more, and give you tips to make guests happier. What would you like to know?
                   </p>
                 </div>
               </div>
@@ -49,7 +49,7 @@ export default function Agents() {
                 type="text"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Ask about your hotel analytics..."
+                placeholder="Ask me anything about your hotel..."
                 className="flex-1 px-4 py-3 rounded-xl border border-border bg-background/50 focus:outline-none focus:ring-2 focus:ring-primary/50"
                 data-testid="input-chat-message"
               />
@@ -61,9 +61,9 @@ export default function Agents() {
 
           <div className="grid md:grid-cols-3 gap-4">
             {[
-              { name: "Sterling", specialty: "Revenue Optimization", icon: Sparkles },
-              { name: "Atlas", specialty: "Market Analysis", icon: Bot },
-              { name: "Sage", specialty: "Guest Experience", icon: Bot },
+              { name: "Sterling", specialty: "Earnings & Pricing", icon: Sparkles },
+              { name: "Atlas", specialty: "Booking Trends", icon: Bot },
+              { name: "Sage", specialty: "Guest Happiness", icon: Bot },
             ].map((agent) => (
               <GlassCard key={agent.name} className="p-4 hover:bg-white/5 cursor-pointer transition-colors">
                 <div className="flex items-center gap-3">
