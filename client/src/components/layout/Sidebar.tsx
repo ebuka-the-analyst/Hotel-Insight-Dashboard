@@ -10,7 +10,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Hexagon,
-  Microscope
+  Microscope,
+  UserCheck
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ const navItems = [
   { icon: LayoutDashboard, label: "Overview", href: "/" },
   { icon: PieChart, label: "Reports", href: "/analysis" },
   { icon: Microscope, label: "Advanced Insights", href: "/research" },
+  { icon: UserCheck, label: "Guest Analytics", href: "/guests" },
   { icon: Bot, label: "AI Helpers", href: "/agents" },
   { icon: Upload, label: "Upload Data", href: "/upload" },
   { icon: Users, label: "Team", href: "/team" },
