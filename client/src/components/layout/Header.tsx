@@ -179,28 +179,29 @@ export function Header() {
           )}
           
           {showSearchResult && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-background border border-border rounded-xl shadow-lg overflow-hidden z-50">
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-900 border border-border rounded-xl shadow-2xl z-[100] max-h-[400px] overflow-y-auto" style={{ minWidth: '400px' }}>
               {isSearching ? (
                 <div className="p-6 flex items-center justify-center gap-2">
                   <Loader2 className="h-5 w-5 animate-spin text-primary" />
                   <span className="text-sm text-muted-foreground">Analyzing your data...</span>
                 </div>
               ) : searchResult ? (
-                <div className="p-4 space-y-3">
+                <div className="p-5 space-y-4">
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <span className="text-sm">✨</span>
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shrink-0 shadow-md">
+                      <span className="text-lg">✨</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-foreground leading-relaxed">{searchResult.answer}</p>
+                      <p className="text-xs font-medium text-primary mb-1">AI Response</p>
+                      <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{searchResult.answer}</p>
                     </div>
                   </div>
                   {searchResult.suggestedActions && searchResult.suggestedActions.length > 0 && (
-                    <div className="pt-2 border-t border-border">
+                    <div className="pt-3 border-t border-border">
                       <p className="text-xs text-muted-foreground mb-2">Suggested actions:</p>
                       <div className="flex flex-wrap gap-2">
                         {searchResult.suggestedActions.map((action, i) => (
-                          <span key={i} className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                          <span key={i} className="text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-full font-medium">
                             {action}
                           </span>
                         ))}
