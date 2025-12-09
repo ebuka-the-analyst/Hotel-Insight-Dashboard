@@ -1,8 +1,12 @@
 import { db } from "./db";
-import { bookings, datasets, analyticsCache, type Booking, type InsertBooking, type Dataset, type InsertDataset, type AnalyticsCache, type InsertAnalyticsCache } from "@shared/schema";
+import { bookings, datasets, analyticsCache, users, type Booking, type InsertBooking, type Dataset, type InsertDataset, type AnalyticsCache, type InsertAnalyticsCache, type User, type UpsertUser } from "@shared/schema";
 import { eq, sql, and, gte, lte, desc } from "drizzle-orm";
 
 export interface IStorage {
+  // User operations (required for Replit Auth)
+  getUser(id: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
+  
   // Dataset operations
   createDataset(data: InsertDataset): Promise<Dataset>;
   getDatasets(): Promise<Dataset[]>;
@@ -25,6 +29,27 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  // User operations (required for Replit Auth)
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  }
+
   // Dataset operations
   async createDataset(data: InsertDataset): Promise<Dataset> {
     const [dataset] = await db.insert(datasets).values(data).returning();

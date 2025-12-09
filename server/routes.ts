@@ -8,6 +8,7 @@ import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { autoMapColumns } from "./auto-mapper";
 import { calculateComprehensiveAnalytics } from "./analytics-service";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 
 const upload = multer({ 
   storage: multer.memoryStorage(),
@@ -19,8 +20,23 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   
-  // Upload file and return headers
-  app.post("/api/upload", upload.single("file"), async (req, res) => {
+  // Setup authentication
+  await setupAuth(app);
+
+  // Auth routes - get current user
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Upload file and return headers (protected)
+  app.post("/api/upload", isAuthenticated, upload.single("file"), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
