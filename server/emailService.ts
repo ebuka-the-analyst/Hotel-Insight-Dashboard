@@ -30,7 +30,9 @@ export async function sendOtpEmail(email: string, otp: string): Promise<{ succes
   try {
     const { client, fromEmail } = await getUncachableResendClient();
     
-    await client.emails.send({
+    console.log(`[Email] Sending OTP to ${email} from ${fromEmail}`);
+    
+    const response = await client.emails.send({
       from: fromEmail,
       to: email,
       subject: 'Your AutoInsight Login Code',
@@ -61,9 +63,17 @@ export async function sendOtpEmail(email: string, otp: string): Promise<{ succes
       `,
     });
     
+    console.log('[Email] Resend response:', JSON.stringify(response));
+    
+    if (response.error) {
+      console.error('[Email] Resend error:', response.error);
+      return { success: false, error: response.error.message };
+    }
+    
+    console.log(`[Email] Successfully sent to ${email}, id: ${response.data?.id}`);
     return { success: true };
   } catch (error: any) {
-    console.error('Failed to send OTP email:', error);
+    console.error('[Email] Failed to send OTP email:', error);
     return { success: false, error: error.message || 'Failed to send email' };
   }
 }
