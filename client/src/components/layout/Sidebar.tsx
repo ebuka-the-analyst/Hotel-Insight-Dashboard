@@ -87,20 +87,6 @@ export function Sidebar() {
       </nav>
 
       <div className="p-4 border-t border-sidebar-border/50">
-        <div className={cn(
-          "bg-gradient-brand rounded-xl p-4 text-white relative overflow-hidden transition-all duration-300",
-          collapsed ? "opacity-0 h-0 p-0" : "opacity-100"
-        )}>
-          <div className="relative z-10">
-            <h4 className="font-serif font-bold mb-1">Upgrade to Pro</h4>
-            <p className="text-xs text-white/80 mb-3">Unlock AI predictions</p>
-            <Button size="sm" variant="secondary" className="w-full bg-white text-primary hover:bg-white/90 border-none">
-              View Plans
-            </Button>
-          </div>
-          <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full blur-xl -mr-4 -mt-4" />
-        </div>
-        
         <Button 
           variant="ghost" 
           size="icon" 
