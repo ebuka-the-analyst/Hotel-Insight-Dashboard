@@ -58,6 +58,42 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  // OTP operations
+  async createOtp(data: InsertEmailOtp): Promise<EmailOtp> {
+    const [otp] = await db.insert(emailOtps).values(data).returning();
+    return otp;
+  }
+
+  async getValidOtp(email: string): Promise<EmailOtp | undefined> {
+    const [otp] = await db.select().from(emailOtps)
+      .where(and(
+        eq(emailOtps.email, email),
+        eq(emailOtps.used, false),
+        gte(emailOtps.expiresAt, new Date()),
+        lt(emailOtps.attempts, 3)
+      ))
+      .orderBy(desc(emailOtps.createdAt))
+      .limit(1);
+    return otp;
+  }
+
+  async markOtpUsed(id: string): Promise<void> {
+    await db.update(emailOtps).set({ used: true }).where(eq(emailOtps.id, id));
+  }
+
+  async incrementOtpAttempts(id: string): Promise<void> {
+    await db.update(emailOtps).set({ attempts: sql`attempts + 1` }).where(eq(emailOtps.id, id));
+  }
+
+  async cleanupExpiredOtps(): Promise<void> {
+    await db.delete(emailOtps).where(lt(emailOtps.expiresAt, new Date()));
+  }
+
   // Dataset operations
   async createDataset(data: InsertDataset): Promise<Dataset> {
     const [dataset] = await db.insert(datasets).values(data).returning();

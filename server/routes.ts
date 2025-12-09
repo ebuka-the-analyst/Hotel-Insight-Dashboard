@@ -8,7 +8,41 @@ import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { autoMapColumns } from "./auto-mapper";
 import { calculateComprehensiveAnalytics } from "./analytics-service";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupEmailAuth, isAuthenticated, generateOtp, hashOtp, verifyOtpHash } from "./emailAuth";
+import { sendOtpEmail } from "./emailService";
+
+// Simple in-memory rate limiter for OTP endpoints
+const otpRequestLimiter = new Map<string, { count: number; resetTime: number }>();
+const otpVerifyLimiter = new Map<string, { count: number; resetTime: number }>();
+const ipRateLimiter = new Map<string, { count: number; resetTime: number }>();
+
+function getClientIp(req: any): string {
+  return req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 
+         req.connection?.remoteAddress || 
+         'unknown';
+}
+
+function checkRateLimit(
+  limiter: Map<string, { count: number; resetTime: number }>,
+  key: string,
+  maxRequests: number,
+  windowMs: number
+): { allowed: boolean; retryAfter?: number } {
+  const now = Date.now();
+  const record = limiter.get(key);
+  
+  if (!record || now > record.resetTime) {
+    limiter.set(key, { count: 1, resetTime: now + windowMs });
+    return { allowed: true };
+  }
+  
+  if (record.count >= maxRequests) {
+    return { allowed: false, retryAfter: Math.ceil((record.resetTime - now) / 1000) };
+  }
+  
+  record.count++;
+  return { allowed: true };
+}
 
 const upload = multer({ 
   storage: multer.memoryStorage(),
@@ -20,19 +54,151 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   
-  // Setup authentication
-  await setupAuth(app);
+  // Setup email authentication with sessions
+  setupEmailAuth(app);
 
-  // Auth routes - get current user
+  // Request OTP - send verification code to email
+  app.post('/api/auth/request-otp', async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email || typeof email !== 'string') {
+        return res.status(400).json({ message: "Email is required" });
+      }
+      
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ message: "Invalid email format" });
+      }
+
+      const normalizedEmail = email.toLowerCase();
+      const clientIp = getClientIp(req);
+      
+      // Rate limit by IP: 10 OTP requests per IP per 15 minutes
+      const ipCheck = checkRateLimit(ipRateLimiter, `request:${clientIp}`, 10, 15 * 60 * 1000);
+      if (!ipCheck.allowed) {
+        return res.status(429).json({ 
+          message: "Too many requests. Please try again later.",
+          retryAfter: ipCheck.retryAfter 
+        });
+      }
+      
+      // Rate limit by email: 3 OTP requests per email per 5 minutes
+      const emailCheck = checkRateLimit(otpRequestLimiter, normalizedEmail, 3, 5 * 60 * 1000);
+      if (!emailCheck.allowed) {
+        return res.status(429).json({ 
+          message: "Too many requests. Please try again later.",
+          retryAfter: emailCheck.retryAfter 
+        });
+      }
+
+      // Generate OTP and store hashed version
+      const otp = generateOtp();
+      const otpHash = hashOtp(otp);
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+      await storage.createOtp({
+        email: email.toLowerCase(),
+        otpHash,
+        expiresAt,
+      });
+
+      // Send OTP via email
+      const result = await sendOtpEmail(email, otp);
+      
+      if (!result.success) {
+        return res.status(500).json({ message: "Failed to send verification code" });
+      }
+
+      res.json({ success: true, message: "Verification code sent" });
+    } catch (error) {
+      console.error("Error requesting OTP:", error);
+      res.status(500).json({ message: "Failed to send verification code" });
+    }
+  });
+
+  // Verify OTP - validate code and create session
+  app.post('/api/auth/verify-otp', async (req, res) => {
+    try {
+      const { email, otp } = req.body;
+      
+      if (!email || !otp) {
+        return res.status(400).json({ message: "Email and code are required" });
+      }
+
+      const normalizedEmail = email.toLowerCase();
+      const clientIp = getClientIp(req);
+      
+      // Rate limit by IP: 20 verification attempts per IP per 15 minutes
+      const ipCheck = checkRateLimit(ipRateLimiter, `verify:${clientIp}`, 20, 15 * 60 * 1000);
+      if (!ipCheck.allowed) {
+        return res.status(429).json({ 
+          message: "Too many attempts. Please try again later.",
+          retryAfter: ipCheck.retryAfter 
+        });
+      }
+      
+      // Rate limit by email: 5 verification attempts per email per 10 minutes
+      const emailCheck = checkRateLimit(otpVerifyLimiter, normalizedEmail, 5, 10 * 60 * 1000);
+      if (!emailCheck.allowed) {
+        return res.status(429).json({ 
+          message: "Too many attempts. Please try again later.",
+          retryAfter: emailCheck.retryAfter 
+        });
+      }
+
+      const storedOtp = await storage.getValidOtp(normalizedEmail);
+
+      if (!storedOtp) {
+        return res.status(400).json({ message: "Invalid or expired code" });
+      }
+
+      // Verify OTP hash
+      if (!verifyOtpHash(otp, storedOtp.otpHash)) {
+        await storage.incrementOtpAttempts(storedOtp.id);
+        return res.status(400).json({ message: "Invalid code" });
+      }
+
+      // Mark OTP as used
+      await storage.markOtpUsed(storedOtp.id);
+
+      // Upsert user
+      let user = await storage.getUserByEmail(normalizedEmail);
+      if (!user) {
+        user = await storage.upsertUser({ email: normalizedEmail });
+      }
+
+      // Create session
+      (req.session as any).userId = user.id;
+      (req.session as any).email = user.email;
+
+      res.json({ success: true, user });
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
+      res.status(500).json({ message: "Failed to verify code" });
+    }
+  });
+
+  // Get current user from session
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.userId;
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
     }
+  });
+
+  // Logout - destroy session
+  app.post('/api/auth/logout', (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Failed to logout" });
+      }
+      res.json({ success: true });
+    });
   });
 
   // Upload file and return headers (protected)
