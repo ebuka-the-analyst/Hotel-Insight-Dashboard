@@ -1,0 +1,121 @@
+Here's a complete summary of ALL design specifications used in your Innovator Founder Visa Assistant:
+
+BRAND COLORS
+Color	Hex	HSL	Usage
+Primary Orange	#ffa536	39 100% 54%	CTAs, highlights, primary buttons
+Secondary Blue	#11b6e9	199 88% 49%	Accents, links, secondary elements
+Brand Gradient	linear-gradient(135deg, #11b6e9 0%, #ffa536 100%)	-	Hero sections, special buttons, floating elements
+TYPOGRAPHY
+Element	Font	Size	Weight
+Primary/UI	Inter	16px base	400-700
+Display/Headlines	Fraunces	87px-21px scale	600-800
+Monospace	SF Mono, Menlo	14px	400
+Type Scale (1.333 ratio):
+
+h1: 87px, h2: 65px, h3: 49px, h4: 37px, h5: 28px, h6: 21px
+Body: 16px (14px mobile, 18px desktop)
+Caption: 12px
+LIGHT MODE PALETTE
+Token	Color
+Background	#ffffff (pure white)
+Foreground	#171717 (near black)
+Card	#fafafa (off-white)
+Border	#e5e5e5 (light gray)
+Muted	#ededed
+Muted Foreground	#595959
+DARK MODE PALETTE
+Token	Color
+Background	#000000 (pure black)
+Foreground	#f2f2f2 (near white)
+Card	#171717 (dark gray)
+Border	#292929 (charcoal)
+Sidebar	#1c1c1c
+Muted	#262626
+Muted Foreground	#a6a6a6
+SPACING SYSTEM (4px base)
+Size	Tailwind	Pixels
+xs	p-1	4px
+sm	p-2	8px
+md	p-3	12px
+lg	p-4	16px
+xl	p-6	24px
+2xl	p-8	32px
+Section	p-16	64px
+BORDER RADIUS
+Element	Radius
+Base (--radius)	0.5rem (8px)
+Buttons	rounded-md
+Cards	rounded-lg
+Pills/Badges	rounded-full
+Modals	rounded-2xl
+AI AGENTS (4 Characters)
+Agent	Role	Color	Icon Style
+Nova	Innovation	#11b6e9 (Blue)	Hexagon/circuit geometric
+Sterling	Financial	#FFD700 (Gold)	Calculator/growth chart
+Atlas	Growth	#10B981 (Emerald)	Expanding node network
+Sage	Compliance	#8B5CF6 (Purple)	Checkmark/shield
+Avatar size: 80px circular
+Active state: 1.3x scale + pulsing animation
+Animated gradient backgrounds
+GLASSMORPHISM EFFECTS
+backdrop-filter: blur(20px);
+background: rgba(17, 182, 233, 0.1);
+border: 1px solid rgba(255, 255, 255, 0.18);
+box-shadow: 0 8px 32px rgba(17, 182, 233, 0.15);
+
+ANIMATIONS & TRANSITIONS
+Type	Duration	Easing
+Entrances	250ms	ease-out
+Exits	200ms	ease-in
+State changes	300ms	ease-in-out
+Playful bounce	400ms	cubic-bezier(0.68, -0.55, 0.265, 1.55)
+Button press	100ms	scale(0.97)
+Loading shimmer	2s	infinite
+Custom Animations:
+
+ping-slow: 2 flashes then 5s pause
+blink-2s: Blink every 2 seconds
+Route transitions: fade + translateY(20px→0)
+COMPONENT SPECS
+Component	Specs
+Sidebar	280px (collapsible to 64px icons)
+Header	60px desktop, 48px mobile
+Mobile Nav	Bottom tab bar (5 icons)
+Touch Targets	Min 44x44px
+Document Cards	16:9 aspect, min-height 240px
+Circular Progress	280px diameter SVG
+BUTTONS
+Variant	Style
+Primary	Orange background, white text
+Secondary	Blue background, white text
+Ghost	Transparent, hover elevate
+Outline	Border only, blur on images
+Destructive	Red background
+Hover: hue-rotate(15deg), scale(1.02), elevated shadow
+Active: translateZ(-10px) 3D press
+Z-INDEX HIERARCHY
+Layer	Z-Index
+Sidebar	10
+Header	20
+Dropdowns/Popovers	50
+Modals/Dialogs	1000
+Floating Buttons	9999
+BREAKPOINTS
+Name	Width
+sm	640px
+md	768px
+lg	1024px
+xl	1280px
+2xl	1536px
+ACCESSIBILITY
+Color contrast: 4.5:1 (text), 3:1 (large text)
+Focus indicators: 3px outline, 2px offset
+ARIA landmarks: nav, main, aside
+Reduced motion: respects prefers-reduced-motion
+SPECIAL FEATURES
+Holographic Cards: Glassmorphic with shimmer on hover
+Agent Handover Animation: SVG path with document icon traveling
+Spatial Timeline: Fixed left 5% with connected gradient nodes
+AR-Inspired Panels: 30px backdrop blur with corner indicators
+Floating Feedback Button: Blue-to-orange gradient, pulsing, left middle screen
+Floating Chatbot: Bottom-right corner
