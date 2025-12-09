@@ -97,10 +97,19 @@ export async function getKPIs(datasetId?: number): Promise<KPIData> {
     throw new Error("Failed to fetch KPIs");
   }
 
-  return response.json();
+  const data = await response.json();
+  
+  return {
+    totalRevenue: data.kpis.totalRevenue,
+    totalBookings: data.kpis.totalBookings,
+    averageDailyRate: data.kpis.avgADR,
+    cancellationRate: data.kpis.cancellationRate,
+    averageLeadTime: data.kpis.avgLeadTime,
+    repeatGuestRate: data.kpis.repeatGuestRate,
+  };
 }
 
-export async function getTrends(datasetId?: number): Promise<TrendData[]> {
+export async function getTrends(datasetId?: number): Promise<{ daily: TrendData[]; weekly: TrendData[]; monthly: TrendData[] }> {
   const url = datasetId 
     ? `/api/analytics/trends?datasetId=${datasetId}`
     : "/api/analytics/trends";

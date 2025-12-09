@@ -26,20 +26,22 @@ export default function Dashboard() {
     queryFn: () => getKPIs(),
   });
 
-  const { data: trends, isLoading: trendsLoading } = useQuery({
+  const { data: trendsData, isLoading: trendsLoading } = useQuery({
     queryKey: ["trends"],
     queryFn: () => getTrends(),
   });
 
-  const occupancyData = trends?.map(t => ({
+  const trends = trendsData?.daily || [];
+
+  const occupancyData = trends.map(t => ({
     day: new Date(t.date).toLocaleDateString('en-US', { weekday: 'short' }),
     value: t.bookings * 10,
-  })) || [];
+  }));
 
-  const revenueData = trends?.map(t => ({
+  const revenueData = trends.map(t => ({
     day: new Date(t.date).toLocaleDateString('en-US', { weekday: 'short' }),
     value: t.revenue,
-  })) || [];
+  }));
 
   if (kpisLoading) {
     return (
