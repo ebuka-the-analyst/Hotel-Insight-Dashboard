@@ -82,11 +82,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteDataset(id: string): Promise<void> {
-    // Cascade delete: bookings, guests, analytics cache, then dataset
-    await db.delete(bookings).where(eq(bookings.datasetId, id));
-    await db.delete(guests).where(eq(guests.datasetId, id));
-    await db.delete(analyticsCache).where(eq(analyticsCache.datasetId, id));
-    await db.delete(datasets).where(eq(datasets.id, id));
+    // Cascade delete in a transaction for data integrity
+    await db.transaction(async (tx) => {
+      await tx.delete(bookings).where(eq(bookings.datasetId, id));
+      await tx.delete(guests).where(eq(guests.datasetId, id));
+      await tx.delete(analyticsCache).where(eq(analyticsCache.datasetId, id));
+      await tx.delete(datasets).where(eq(datasets.id, id));
+    });
   }
 
   // Booking operations
