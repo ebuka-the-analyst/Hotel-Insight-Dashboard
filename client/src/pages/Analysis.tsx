@@ -161,7 +161,7 @@ export default function Analysis() {
     );
   }
 
-  const { coreKPIs, revenueAnalytics, bookingAnalytics, guestAnalytics, cancellationAnalytics, 
+  const { coreKPIs, revenueAnalytics, bookingAnalytics, guestAnalytics, guestPerformanceAnalytics, cancellationAnalytics, 
           operationalAnalytics, forecastingAnalytics, channelAnalytics, seasonalityAnalytics, performanceIndicators } = analytics;
 
   const formatCurrency = (val: number) => `£${val.toLocaleString()}`;
@@ -195,6 +195,7 @@ export default function Analysis() {
           <TabsTrigger value="revenue" data-testid="tab-revenue">Revenue</TabsTrigger>
           <TabsTrigger value="bookings" data-testid="tab-bookings">Bookings</TabsTrigger>
           <TabsTrigger value="guests" data-testid="tab-guests">Guests</TabsTrigger>
+          <TabsTrigger value="guest-performance" data-testid="tab-guest-performance">Guest Performance</TabsTrigger>
           <TabsTrigger value="cancellations" data-testid="tab-cancellations">Cancellations</TabsTrigger>
           <TabsTrigger value="operations" data-testid="tab-operations">Operations</TabsTrigger>
           <TabsTrigger value="forecasting" data-testid="tab-forecasting">Forecasting</TabsTrigger>
@@ -500,6 +501,426 @@ export default function Analysis() {
               </div>
             </GlassCard>
           </div>
+        </TabsContent>
+
+        <TabsContent value="guest-performance" className="space-y-6" data-testid="tabcontent-guest-performance">
+          {guestPerformanceAnalytics && (
+            <>
+              {/* Loyalty & Retention Section */}
+              <div>
+                <SectionHeader title="Guest Loyalty & Retention" subtitle="7 metrics analyzing guest loyalty and churn risk" />
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <MetricCard 
+                    title="Repeat Guest Revenue" 
+                    value={formatCurrency(guestPerformanceAnalytics.loyaltyMetrics.repeatGuestRevenueContribution)} 
+                    subtitle={`${guestPerformanceAnalytics.loyaltyMetrics.repeatGuestRevenuePercent}% of total`}
+                    icon={DollarSign} 
+                  />
+                  <MetricCard 
+                    title="Estimated CLV" 
+                    value={formatCurrency(guestPerformanceAnalytics.loyaltyMetrics.estimatedCLV)} 
+                    subtitle="Customer lifetime value"
+                    icon={Target} 
+                  />
+                  <MetricCard 
+                    title="Avg Time Between Visits" 
+                    value={`${guestPerformanceAnalytics.loyaltyMetrics.avgTimeBetweenVisits} days`} 
+                    icon={Clock} 
+                  />
+                  <MetricCard 
+                    title="Upsell Potential" 
+                    value={`${guestPerformanceAnalytics.spendingMetrics.upsellPotentialScore}/100`} 
+                    icon={TrendingUp} 
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <GlassCard className="p-6">
+                    <SectionHeader title="Loyalty Tier Distribution" />
+                    <div className="h-[280px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={guestPerformanceAnalytics.loyaltyMetrics.loyaltyTierDistribution}>
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                          <XAxis dataKey="tier" tick={{ fontSize: 12 }} />
+                          <YAxis tick={{ fontSize: 12 }} />
+                          <Tooltip formatter={(value: number, name) => name === 'avgSpend' ? formatCurrency(value) : value} />
+                          <Legend />
+                          <Bar dataKey="count" fill="#4B77A9" name="Guests" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="mt-4 text-xs text-muted-foreground">
+                      {guestPerformanceAnalytics.loyaltyMetrics.loyaltyTierDistribution.map(t => (
+                        <div key={t.tier} className="flex justify-between py-1 border-b border-muted/20">
+                          <span>{t.tier}</span>
+                          <span>Avg Spend: {formatCurrency(t.avgSpend)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </GlassCard>
+
+                  <GlassCard className="p-6">
+                    <SectionHeader title="Churn Risk Distribution" />
+                    <div className="h-[280px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RechartsPie>
+                          <Pie 
+                            data={guestPerformanceAnalytics.loyaltyMetrics.churnRiskDistribution} 
+                            dataKey="count" 
+                            nameKey="risk" 
+                            cx="50%" 
+                            cy="50%" 
+                            outerRadius={90} 
+                            label={({ risk, percent }) => `${risk} (${percent}%)`}
+                          >
+                            {guestPerformanceAnalytics.loyaltyMetrics.churnRiskDistribution.map((_, index) => (
+                              <Cell key={`cell-${index}`} fill={['#10b981', '#4B77A9', '#f59e0b', '#ef4444'][index % 4]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                        </RechartsPie>
+                      </ResponsiveContainer>
+                    </div>
+                  </GlassCard>
+
+                  <GlassCard className="p-6">
+                    <SectionHeader title="Retention Cohorts" />
+                    <div className="space-y-3 mt-4">
+                      {guestPerformanceAnalytics.loyaltyMetrics.retentionCohorts.map((cohort, i) => (
+                        <div key={i}>
+                          <div className="flex justify-between text-sm mb-1">
+                            <span>{cohort.cohort}</span>
+                            <span className={`font-medium ${cohort.retentionRate >= 50 ? 'text-green-500' : cohort.retentionRate >= 25 ? 'text-amber-500' : 'text-red-500'}`}>
+                              {cohort.retentionRate}% retained
+                            </span>
+                          </div>
+                          <Progress value={cohort.retentionRate} className="h-2" />
+                          <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                            <span>{cohort.retained} retained</span>
+                            <span>{cohort.churned} churned</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </GlassCard>
+                </div>
+              </div>
+
+              {/* Guest Segmentation Section */}
+              <div>
+                <SectionHeader title="Guest Segmentation" subtitle="6 metrics for understanding guest composition" />
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <MetricCard 
+                    title="Geographic Concentration" 
+                    value={guestPerformanceAnalytics.segmentationMetrics.geographicConcentrationIndex.toFixed(2)} 
+                    subtitle="Diversity index (0-1)"
+                    icon={Globe} 
+                  />
+                  <MetricCard 
+                    title="Domestic Guests" 
+                    value={`${guestPerformanceAnalytics.segmentationMetrics.domesticVsInternationalMix.domesticPercent}%`} 
+                    subtitle={`${guestPerformanceAnalytics.segmentationMetrics.domesticVsInternationalMix.domestic} bookings`}
+                    icon={Building} 
+                  />
+                  <MetricCard 
+                    title="Corporate Revenue" 
+                    value={`${guestPerformanceAnalytics.segmentationMetrics.corporateVsLeisureRevenue.corporatePercent}%`} 
+                    subtitle={formatCurrency(guestPerformanceAnalytics.segmentationMetrics.corporateVsLeisureRevenue.corporate)}
+                    icon={Building} 
+                  />
+                  <MetricCard 
+                    title="High Value Guests" 
+                    value={guestPerformanceAnalytics.segmentationMetrics.highValueGuestAnalysis.count} 
+                    subtitle={`${guestPerformanceAnalytics.segmentationMetrics.highValueGuestAnalysis.percent}% of guests`}
+                    icon={TrendingUp} 
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <GlassCard className="p-6">
+                    <SectionHeader title="Guest Type Distribution" />
+                    <div className="h-[300px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RechartsPie>
+                          <Pie 
+                            data={guestPerformanceAnalytics.segmentationMetrics.guestTypeDistribution} 
+                            dataKey="count" 
+                            nameKey="type" 
+                            cx="50%" 
+                            cy="50%" 
+                            outerRadius={100} 
+                            label={({ type, percent }) => `${type} (${percent}%)`}
+                          >
+                            {guestPerformanceAnalytics.segmentationMetrics.guestTypeDistribution.map((_, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(value: number, name, props) => [value, props.payload?.type]} />
+                        </RechartsPie>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="mt-2 text-xs text-muted-foreground">
+                      {guestPerformanceAnalytics.segmentationMetrics.guestTypeDistribution.map(t => (
+                        <div key={t.type} className="flex justify-between py-1 border-b border-muted/20">
+                          <span>{t.type}</span>
+                          <span>Avg Revenue: {formatCurrency(t.avgRevenue)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </GlassCard>
+
+                  <GlassCard className="p-6">
+                    <SectionHeader title="Market Segment Matrix" />
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-muted">
+                            <th className="text-left py-2 font-medium">Segment</th>
+                            <th className="text-right py-2 font-medium">Bookings</th>
+                            <th className="text-right py-2 font-medium">Revenue</th>
+                            <th className="text-right py-2 font-medium">Avg ADR</th>
+                            <th className="text-right py-2 font-medium">Cancel %</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {guestPerformanceAnalytics.segmentationMetrics.marketSegmentMatrix.slice(0, 6).map((seg, i) => (
+                            <tr key={i} className="border-b border-muted/50">
+                              <td className="py-2">{seg.segment}</td>
+                              <td className="text-right py-2">{seg.bookings}</td>
+                              <td className="text-right py-2">{formatCurrency(seg.revenue)}</td>
+                              <td className="text-right py-2">{formatCurrency(seg.avgADR)}</td>
+                              <td className={`text-right py-2 ${seg.cancellationRate > 20 ? 'text-red-500' : seg.cancellationRate > 10 ? 'text-amber-500' : 'text-green-500'}`}>
+                                {seg.cancellationRate}%
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </GlassCard>
+                </div>
+              </div>
+
+              {/* Spending Behavior Section */}
+              <div>
+                <SectionHeader title="Guest Spending Behavior" subtitle="6 metrics analyzing spending patterns" />
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                  <MetricCard title="Revenue per Guest" value={formatCurrency(guestPerformanceAnalytics.spendingMetrics.revenuePerGuest)} icon={DollarSign} />
+                  <MetricCard title="25th Percentile" value={formatCurrency(guestPerformanceAnalytics.spendingMetrics.spendDistributionPercentiles.p25)} subtitle="Low spenders" icon={TrendingDown} />
+                  <MetricCard title="Median Spend" value={formatCurrency(guestPerformanceAnalytics.spendingMetrics.spendDistributionPercentiles.p50)} subtitle="50th percentile" icon={BarChart3} />
+                  <MetricCard title="75th Percentile" value={formatCurrency(guestPerformanceAnalytics.spendingMetrics.spendDistributionPercentiles.p75)} subtitle="High spenders" icon={TrendingUp} />
+                  <MetricCard title="Top 1% Spend" value={formatCurrency(guestPerformanceAnalytics.spendingMetrics.spendDistributionPercentiles.p99)} subtitle="99th percentile" icon={Target} />
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <GlassCard className="p-6">
+                    <SectionHeader title="ADR by Guest Type" />
+                    <div className="h-[280px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={guestPerformanceAnalytics.spendingMetrics.adrByGuestType} layout="vertical">
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                          <XAxis type="number" tick={{ fontSize: 12 }} tickFormatter={(v) => `£${v}`} />
+                          <YAxis dataKey="type" type="category" tick={{ fontSize: 12 }} width={70} />
+                          <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                          <Bar dataKey="adr" fill="#bf5b20" radius={[0, 4, 4, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </GlassCard>
+
+                  <GlassCard className="p-6">
+                    <SectionHeader title="Length of Stay Impact on Spend" />
+                    <div className="h-[280px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={guestPerformanceAnalytics.spendingMetrics.losImpactOnSpend}>
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                          <XAxis dataKey="losRange" tick={{ fontSize: 10 }} angle={-45} textAnchor="end" height={70} />
+                          <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `£${v}`} />
+                          <Tooltip formatter={(value: number, name) => name === 'avgSpend' ? formatCurrency(value) : value} />
+                          <Bar dataKey="avgSpend" fill="#10b981" name="Avg Spend" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </GlassCard>
+                </div>
+
+                <GlassCard className="p-6">
+                  <SectionHeader title="Price Sensitivity by Segment" subtitle="Coefficient of variation in ADR" />
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-muted">
+                          <th className="text-left py-2 font-medium">Segment</th>
+                          <th className="text-right py-2 font-medium">Sensitivity</th>
+                          <th className="text-right py-2 font-medium">Avg ADR</th>
+                          <th className="text-right py-2 font-medium">Variance</th>
+                          <th className="text-left py-2 font-medium pl-4">Interpretation</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {guestPerformanceAnalytics.spendingMetrics.priceSensitivityBySegment.map((seg, i) => (
+                          <tr key={i} className="border-b border-muted/50">
+                            <td className="py-2">{seg.segment}</td>
+                            <td className="text-right py-2">{seg.sensitivity}%</td>
+                            <td className="text-right py-2">{formatCurrency(seg.avgADR)}</td>
+                            <td className="text-right py-2">{seg.variance.toLocaleString()}</td>
+                            <td className={`py-2 pl-4 ${seg.sensitivity > 30 ? 'text-red-500' : seg.sensitivity > 15 ? 'text-amber-500' : 'text-green-500'}`}>
+                              {seg.sensitivity > 30 ? 'High sensitivity' : seg.sensitivity > 15 ? 'Moderate' : 'Price stable'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </GlassCard>
+              </div>
+
+              {/* Booking Patterns Section */}
+              <div>
+                <SectionHeader title="Guest Booking Patterns" subtitle="6 metrics on how guests book" />
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <MetricCard 
+                    title="Weekend Ratio" 
+                    value={`${guestPerformanceAnalytics.bookingPatterns.weekendVsWeekdayRatio.ratio.toFixed(2)}:1`} 
+                    subtitle={`${guestPerformanceAnalytics.bookingPatterns.weekendVsWeekdayRatio.weekend} weekend`}
+                    icon={Calendar} 
+                  />
+                  <MetricCard 
+                    title="Advance Planning" 
+                    value={`${guestPerformanceAnalytics.bookingPatterns.advancePlanningIndex}%`} 
+                    subtitle="30+ days ahead"
+                    icon={Clock} 
+                  />
+                  <MetricCard 
+                    title="Last Minute" 
+                    value={`${guestPerformanceAnalytics.bookingPatterns.lastMinutePropensity}%`} 
+                    subtitle="Within 3 days"
+                    icon={Zap} 
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <GlassCard className="p-6">
+                    <SectionHeader title="Preferred Arrival Days" />
+                    <div className="h-[280px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={guestPerformanceAnalytics.bookingPatterns.preferredArrivalDays}>
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                          <XAxis dataKey="day" tick={{ fontSize: 11 }} />
+                          <YAxis tick={{ fontSize: 12 }} />
+                          <Tooltip />
+                          <Bar dataKey="count" fill="#11b6e9" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </GlassCard>
+
+                  <GlassCard className="p-6">
+                    <SectionHeader title="Lead Time by Guest Type" subtitle="New vs Repeat guests" />
+                    <div className="h-[280px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={guestPerformanceAnalytics.bookingPatterns.leadTimeByGuestType}>
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                          <XAxis dataKey="type" tick={{ fontSize: 12 }} />
+                          <YAxis tick={{ fontSize: 12 }} label={{ value: 'Days', angle: -90, position: 'insideLeft', fontSize: 11 }} />
+                          <Tooltip />
+                          <Legend />
+                          <Bar dataKey="newGuest" fill="#4B77A9" name="New Guest" radius={[4, 4, 0, 0]} />
+                          <Bar dataKey="repeatGuest" fill="#10b981" name="Repeat Guest" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </GlassCard>
+                </div>
+
+                <GlassCard className="p-6">
+                  <SectionHeader title="Seasonal Guest Mix" subtitle="New vs returning guests by season" />
+                  <div className="h-[280px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={guestPerformanceAnalytics.bookingPatterns.seasonalGuestMix}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis dataKey="season" tick={{ fontSize: 12 }} />
+                        <YAxis tick={{ fontSize: 12 }} />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="newGuests" stackId="a" fill="#4B77A9" name="New Guests" />
+                        <Bar dataKey="repeatGuests" stackId="a" fill="#10b981" name="Repeat Guests" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="mt-4 grid grid-cols-4 gap-4 text-center">
+                    {guestPerformanceAnalytics.bookingPatterns.seasonalGuestMix.map(s => (
+                      <div key={s.season} className="p-2 bg-muted/30 rounded-lg">
+                        <div className="font-semibold">{s.season}</div>
+                        <div className="text-xs text-muted-foreground">{s.repeatPercent}% repeat</div>
+                      </div>
+                    ))}
+                  </div>
+                </GlassCard>
+              </div>
+
+              {/* Risk & Experience Section */}
+              <div>
+                <SectionHeader title="Guest Risk & Experience" subtitle="3 metrics on cancellation risk and satisfaction" />
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                  <MetricCard 
+                    title="Satisfaction Proxy" 
+                    value={`${guestPerformanceAnalytics.riskExperience.guestSatisfactionProxyScore}/100`} 
+                    subtitle="Based on behavior"
+                    icon={Target} 
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <GlassCard className="p-6">
+                    <SectionHeader title="Cancellation Rate by Guest Type" />
+                    <div className="h-[280px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={guestPerformanceAnalytics.riskExperience.cancellationRateByGuestType}>
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                          <XAxis dataKey="type" tick={{ fontSize: 12 }} />
+                          <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `${v}%`} />
+                          <Tooltip formatter={(value: number) => `${value}%`} />
+                          <Bar dataKey="rate" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="mt-2 text-xs text-muted-foreground">
+                      {guestPerformanceAnalytics.riskExperience.cancellationRateByGuestType.map(t => (
+                        <div key={t.type} className="flex justify-between py-1 border-b border-muted/20">
+                          <span>{t.type}</span>
+                          <span>{t.count} cancellations</span>
+                        </div>
+                      ))}
+                    </div>
+                  </GlassCard>
+
+                  <GlassCard className="p-6">
+                    <SectionHeader title="Room Type Preferences" />
+                    <div className="h-[280px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={guestPerformanceAnalytics.riskExperience.roomTypePreferences.slice(0, 6)} layout="vertical">
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                          <XAxis type="number" tick={{ fontSize: 12 }} />
+                          <YAxis dataKey="roomType" type="category" tick={{ fontSize: 10 }} width={100} />
+                          <Tooltip formatter={(value: number, name) => name === 'avgADR' ? formatCurrency(value) : value} />
+                          <Bar dataKey="count" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="mt-2 text-xs text-muted-foreground">
+                      {guestPerformanceAnalytics.riskExperience.roomTypePreferences.slice(0, 4).map(r => (
+                        <div key={r.roomType} className="flex justify-between py-1 border-b border-muted/20">
+                          <span>{r.roomType} ({r.percent}%)</span>
+                          <span>ADR: {formatCurrency(r.avgADR)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </GlassCard>
+                </div>
+              </div>
+            </>
+          )}
         </TabsContent>
 
         <TabsContent value="cancellations" className="space-y-6">

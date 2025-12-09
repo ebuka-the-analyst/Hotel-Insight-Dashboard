@@ -223,6 +223,46 @@ export interface ComprehensiveAnalytics {
     highValueGuestCount: number;
     guestLoyaltyScore: number;
   };
+  guestPerformanceAnalytics: {
+    loyaltyMetrics: {
+      repeatGuestRevenueContribution: number;
+      repeatGuestRevenuePercent: number;
+      estimatedCLV: number;
+      loyaltyTierDistribution: { tier: string; count: number; percent: number; avgSpend: number }[];
+      avgTimeBetweenVisits: number;
+      retentionCohorts: { cohort: string; retained: number; churned: number; retentionRate: number }[];
+      churnRiskDistribution: { risk: string; count: number; percent: number }[];
+    };
+    segmentationMetrics: {
+      guestTypeDistribution: { type: string; count: number; percent: number; avgRevenue: number }[];
+      geographicConcentrationIndex: number;
+      domesticVsInternationalMix: { domestic: number; international: number; domesticPercent: number };
+      marketSegmentMatrix: { segment: string; bookings: number; revenue: number; avgADR: number; cancellationRate: number }[];
+      corporateVsLeisureRevenue: { corporate: number; leisure: number; corporatePercent: number };
+      highValueGuestAnalysis: { count: number; revenueContribution: number; avgSpend: number; percent: number };
+    };
+    spendingMetrics: {
+      revenuePerGuest: number;
+      adrByGuestType: { type: string; adr: number }[];
+      spendDistributionPercentiles: { p25: number; p50: number; p75: number; p90: number; p99: number };
+      losImpactOnSpend: { losRange: string; avgSpend: number; count: number }[];
+      priceSensitivityBySegment: { segment: string; sensitivity: number; avgADR: number; variance: number }[];
+      upsellPotentialScore: number;
+    };
+    bookingPatterns: {
+      leadTimeByGuestType: { type: string; avgLeadTime: number; newGuest: number; repeatGuest: number }[];
+      preferredArrivalDays: { day: string; count: number; percent: number }[];
+      weekendVsWeekdayRatio: { weekend: number; weekday: number; ratio: number };
+      advancePlanningIndex: number;
+      lastMinutePropensity: number;
+      seasonalGuestMix: { season: string; newGuests: number; repeatGuests: number; repeatPercent: number }[];
+    };
+    riskExperience: {
+      cancellationRateByGuestType: { type: string; rate: number; count: number }[];
+      guestSatisfactionProxyScore: number;
+      roomTypePreferences: { roomType: string; count: number; percent: number; avgADR: number }[];
+    };
+  };
   cancellationAnalytics: {
     cancellationRateByChannel: Record<string, number>;
     cancellationRateByLeadTime: { range: string; rate: number }[];
