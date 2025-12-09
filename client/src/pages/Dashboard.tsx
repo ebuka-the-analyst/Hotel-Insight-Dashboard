@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { ChartWidget } from "@/components/dashboard/ChartWidget";
@@ -16,30 +17,46 @@ import {
   Clock,
   Calendar,
   Building,
-  Percent
+  Percent,
+  ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
-import { getKPIs, getTrends, getComprehensiveAnalytics } from "@/lib/api-client";
+import { getKPIs, getTrends, getComprehensiveAnalytics, getDatasets } from "@/lib/api-client";
 import { useLocation } from "wouter";
 
 export default function Dashboard() {
   const [_, setLocation] = useLocation();
+  const [selectedDatasetId, setSelectedDatasetId] = useState<string | undefined>(undefined);
+
+  const { data: datasets, isLoading: datasetsLoading } = useQuery({
+    queryKey: ["datasets"],
+    queryFn: () => getDatasets(),
+  });
 
   const { data: kpis, isLoading: kpisLoading, error: kpisError } = useQuery({
-    queryKey: ["kpis"],
-    queryFn: () => getKPIs(),
+    queryKey: ["kpis", selectedDatasetId],
+    queryFn: () => getKPIs(selectedDatasetId),
   });
 
   const { data: trendsData, isLoading: trendsLoading } = useQuery({
-    queryKey: ["trends"],
-    queryFn: () => getTrends(),
+    queryKey: ["trends", selectedDatasetId],
+    queryFn: () => getTrends(selectedDatasetId),
   });
 
   const { data: fullAnalytics } = useQuery({
-    queryKey: ["comprehensive-analytics"],
-    queryFn: () => getComprehensiveAnalytics(),
+    queryKey: ["comprehensive-analytics", selectedDatasetId],
+    queryFn: () => getComprehensiveAnalytics(selectedDatasetId),
   });
+
+  const selectedDataset = datasets?.find(d => d.id === selectedDatasetId);
 
   const trends = trendsData?.daily || [];
 
@@ -95,11 +112,31 @@ export default function Dashboard() {
     <Layout>
       <div className="flex flex-col md:flex-row gap-6 md:items-center justify-between">
         <div>
-          <h1 className="text-4xl font-serif font-bold text-foreground mb-2" data-testid="text-dashboard-title">
-            Dashboard
-          </h1>
+          <div className="flex items-center gap-4 mb-2">
+            <h1 className="text-4xl font-serif font-bold text-foreground" data-testid="text-dashboard-title">
+              Dashboard
+            </h1>
+            {datasets && datasets.length > 0 && (
+              <Select
+                value={selectedDatasetId || "all"}
+                onValueChange={(value) => setSelectedDatasetId(value === "all" ? undefined : value)}
+              >
+                <SelectTrigger className="w-[200px]" data-testid="select-dataset">
+                  <SelectValue placeholder="All Datasets" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Datasets</SelectItem>
+                  {datasets.map((dataset) => (
+                    <SelectItem key={dataset.id} value={dataset.id.toString()}>
+                      {dataset.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
           <p className="text-muted-foreground">
-            Here's your executive summary for <span className="font-semibold text-foreground">Hyatt Place Leeds</span>.
+            Here's your executive summary for <span className="font-semibold text-foreground">{selectedDataset?.name || "Hyatt Place"}</span>.
           </p>
         </div>
         

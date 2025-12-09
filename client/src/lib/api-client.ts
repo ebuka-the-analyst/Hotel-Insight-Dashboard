@@ -98,7 +98,7 @@ export async function getDatasets(): Promise<Dataset[]> {
   return response.json();
 }
 
-export async function getKPIs(datasetId?: number): Promise<KPIData> {
+export async function getKPIs(datasetId?: string): Promise<KPIData> {
   const url = datasetId 
     ? `/api/analytics/kpis?datasetId=${datasetId}`
     : "/api/analytics/kpis";
@@ -121,7 +121,7 @@ export async function getKPIs(datasetId?: number): Promise<KPIData> {
   };
 }
 
-export async function getTrends(datasetId?: number): Promise<{ daily: TrendData[]; weekly: TrendData[]; monthly: TrendData[] }> {
+export async function getTrends(datasetId?: string): Promise<{ daily: TrendData[]; weekly: TrendData[]; monthly: TrendData[] }> {
   const url = datasetId 
     ? `/api/analytics/trends?datasetId=${datasetId}`
     : "/api/analytics/trends";
@@ -135,7 +135,7 @@ export async function getTrends(datasetId?: number): Promise<{ daily: TrendData[
   return response.json();
 }
 
-export async function getChannelPerformance(datasetId?: number): Promise<ChannelPerformance[]> {
+export async function getChannelPerformance(datasetId?: string): Promise<ChannelPerformance[]> {
   const url = datasetId 
     ? `/api/analytics/channels?datasetId=${datasetId}`
     : "/api/analytics/channels";
@@ -149,7 +149,7 @@ export async function getChannelPerformance(datasetId?: number): Promise<Channel
   return response.json();
 }
 
-export async function getBookings(datasetId?: number): Promise<Booking[]> {
+export async function getBookings(datasetId?: string): Promise<Booking[]> {
   const url = datasetId 
     ? `/api/bookings?datasetId=${datasetId}`
     : "/api/bookings";
@@ -294,7 +294,7 @@ export interface ComprehensiveAnalytics {
   };
 }
 
-export async function getComprehensiveAnalytics(datasetId?: number): Promise<ComprehensiveAnalytics> {
+export async function getComprehensiveAnalytics(datasetId?: string): Promise<ComprehensiveAnalytics> {
   const url = datasetId 
     ? `/api/analytics/comprehensive?datasetId=${datasetId}`
     : "/api/analytics/comprehensive";
