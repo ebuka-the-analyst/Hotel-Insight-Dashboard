@@ -597,3 +597,88 @@ export async function sendTestEmail(subscriptionId: string): Promise<{ success: 
   if (!response.ok) throw new Error("Failed to send test email");
   return response.json();
 }
+
+export interface AIInsight {
+  id: string;
+  datasetId: string | null;
+  category: string;
+  title: string;
+  summary: string;
+  details: string;
+  impact: string;
+  confidence: number;
+  actionItems: string[];
+  relatedMetrics: Record<string, number>;
+  createdAt: string;
+}
+
+export interface Notification {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  priority: string;
+  isRead: boolean;
+  actionUrl: string | null;
+  createdAt: string;
+}
+
+export interface QueryResponse {
+  answer: string;
+  dataContext: Record<string, unknown>;
+  suggestedActions: string[];
+}
+
+export async function queryInsights(query: string, datasetId?: string): Promise<QueryResponse> {
+  const response = await fetch('/api/insights/query', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, datasetId }),
+  });
+  if (!response.ok) throw new Error("Failed to query insights");
+  return response.json();
+}
+
+export async function getInsights(datasetId?: string): Promise<AIInsight[]> {
+  const url = datasetId ? `/api/insights?datasetId=${datasetId}` : '/api/insights';
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Failed to fetch insights");
+  return response.json();
+}
+
+export async function generateInsights(datasetId: string): Promise<AIInsight[]> {
+  const response = await fetch(`/api/insights/generate/${datasetId}`, { method: 'POST' });
+  if (!response.ok) throw new Error("Failed to generate insights");
+  return response.json();
+}
+
+export async function getNotifications(limit?: number): Promise<Notification[]> {
+  const url = limit ? `/api/notifications?limit=${limit}` : '/api/notifications';
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Failed to fetch notifications");
+  return response.json();
+}
+
+export async function getUnreadNotificationCount(): Promise<{ count: number }> {
+  const response = await fetch('/api/notifications/unread-count');
+  if (!response.ok) throw new Error("Failed to fetch unread count");
+  return response.json();
+}
+
+export async function markNotificationRead(id: string): Promise<Notification> {
+  const response = await fetch(`/api/notifications/${id}/read`, { method: 'PATCH' });
+  if (!response.ok) throw new Error("Failed to mark notification read");
+  return response.json();
+}
+
+export async function markAllNotificationsRead(): Promise<{ success: boolean }> {
+  const response = await fetch('/api/notifications/mark-all-read', { method: 'POST' });
+  if (!response.ok) throw new Error("Failed to mark all notifications read");
+  return response.json();
+}
+
+export async function generateNotifications(datasetId: string): Promise<Notification[]> {
+  const response = await fetch(`/api/notifications/generate/${datasetId}`, { method: 'POST' });
+  if (!response.ok) throw new Error("Failed to generate notifications");
+  return response.json();
+}
