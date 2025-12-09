@@ -179,45 +179,34 @@ export function Header() {
           )}
           
           {showSearchResult && (
-            <>
-              <div 
-                className="fixed inset-0 bg-black/50 z-[100]" 
-                onClick={() => setShowSearchResult(false)}
-              />
-              <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-xl bg-white dark:bg-zinc-900 border border-border rounded-2xl shadow-2xl z-[101] max-h-[80vh] overflow-y-auto">
-                <div className="sticky top-0 bg-white dark:bg-zinc-900 border-b border-border px-5 py-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shadow-md">
-                      <span className="text-lg">✨</span>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-foreground">AI Assistant</p>
-                      <p className="text-xs text-muted-foreground">Analyzing your hotel data</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setShowSearchResult(false)}
-                    className="p-2 hover:bg-muted rounded-full transition-colors"
-                  >
-                    <X className="h-5 w-5 text-muted-foreground" />
-                  </button>
+            <div className="fixed top-20 right-6 w-80 bg-white dark:bg-zinc-900 border border-border rounded-xl shadow-2xl z-[100] overflow-hidden">
+              <div className="bg-gradient-to-r from-orange-400 to-orange-500 px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-white text-lg">✨</span>
+                  <span className="text-white font-medium text-sm">AI Assistant</span>
                 </div>
+                <button
+                  onClick={() => setShowSearchResult(false)}
+                  className="p-1 hover:bg-white/20 rounded-full transition-colors"
+                >
+                  <X className="h-4 w-4 text-white" />
+                </button>
+              </div>
+              <div className="max-h-64 overflow-y-auto">
                 {isSearching ? (
-                  <div className="p-8 flex flex-col items-center justify-center gap-3">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <span className="text-sm text-muted-foreground">Analyzing your data...</span>
+                  <div className="p-6 flex flex-col items-center justify-center gap-2">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    <span className="text-xs text-muted-foreground">Analyzing...</span>
                   </div>
                 ) : searchResult ? (
-                  <div className="p-5 space-y-4">
-                    <div className="bg-muted/30 rounded-xl p-4">
-                      <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{searchResult.answer}</p>
-                    </div>
+                  <div className="p-4">
+                    <p className="text-sm text-foreground leading-relaxed">{searchResult.answer}</p>
                     {searchResult.suggestedActions && searchResult.suggestedActions.length > 0 && (
-                      <div className="pt-3 border-t border-border">
-                        <p className="text-xs text-muted-foreground mb-2">Suggested actions:</p>
-                        <div className="flex flex-wrap gap-2">
+                      <div className="mt-3 pt-3 border-t border-border">
+                        <p className="text-xs text-muted-foreground mb-2">Suggestions:</p>
+                        <div className="flex flex-wrap gap-1.5">
                           {searchResult.suggestedActions.map((action, i) => (
-                            <span key={i} className="text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-full font-medium">
+                            <span key={i} className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
                               {action}
                             </span>
                           ))}
@@ -227,7 +216,7 @@ export function Header() {
                   </div>
                 ) : null}
               </div>
-            </>
+            </div>
           )}
         </form>
       </div>
