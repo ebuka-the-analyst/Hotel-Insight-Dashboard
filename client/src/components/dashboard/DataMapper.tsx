@@ -5,46 +5,55 @@ import { ArrowRight, Check, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
-// This would typically come from parsing the uploaded file
-// Mocking headers based on standard Hotel Excel formats
-const DETECTED_HEADERS = [
-  "Booking_Ref",
-  "Guest_Name",
-  "Check_In_Date",
-  "Check_Out_Date",
-  "Room_Category",
-  "Room_Num",
-  "Rate_Plan",
-  "Total_Amount",
-  "Booking_Status",
-  "Channel"
-];
-
 const SYSTEM_FIELDS = [
-  { key: "id", label: "Booking ID", required: true },
-  { key: "guest", label: "Guest Name", required: false },
-  { key: "arrival", label: "Arrival Date", required: true },
-  { key: "departure", label: "Departure Date", required: true },
-  { key: "room_type", label: "Room Type", required: false },
-  { key: "revenue", label: "Total Revenue", required: true },
-  { key: "status", label: "Status", required: true },
+  { key: "bookingRef", label: "Booking Reference", required: true },
+  { key: "guestName", label: "Guest Name", required: false },
+  { key: "guestCountry", label: "Guest Country", required: false },
+  { key: "checkInDate", label: "Check-In Date", required: true },
+  { key: "checkOutDate", label: "Check-Out Date", required: true },
+  { key: "bookingDate", label: "Booking Date", required: false },
+  { key: "roomCategory", label: "Room Category", required: false },
+  { key: "roomNum", label: "Room Number", required: false },
+  { key: "adults", label: "Adults", required: false },
+  { key: "children", label: "Children", required: false },
+  { key: "totalAmount", label: "Total Amount", required: true },
+  { key: "adr", label: "ADR (Average Daily Rate)", required: false },
+  { key: "depositType", label: "Deposit Type", required: false },
+  { key: "channel", label: "Booking Channel", required: true },
+  { key: "marketSegment", label: "Market Segment", required: false },
+  { key: "bookingStatus", label: "Booking Status", required: true },
+  { key: "leadTime", label: "Lead Time (days)", required: false },
+  { key: "lengthOfStay", label: "Length of Stay", required: false },
+  { key: "isRepeatedGuest", label: "Repeated Guest", required: false },
+  { key: "previousBookings", label: "Previous Bookings", required: false },
 ];
 
 interface DataMapperProps {
+  headers: string[];
+  file: File;
+  fileName: string;
   onComplete: () => void;
   onCancel: () => void;
+  onMappingSubmit: (columnMapping: Record<string, string>) => Promise<void>;
 }
 
-export function DataMapper({ onComplete, onCancel }: DataMapperProps) {
-  // Auto-map logic (mocked)
-  const [mappings, setMappings] = useState<Record<string, string>>({
-    id: "Booking_Ref",
-    guest: "Guest_Name",
-    arrival: "Check_In_Date",
-    departure: "Check_Out_Date",
-    revenue: "Total_Amount",
-    status: "Booking_Status"
+export function DataMapper({ headers, file, fileName, onComplete, onCancel, onMappingSubmit }: DataMapperProps) {
+  const [mappings, setMappings] = useState<Record<string, string>>(() => {
+    const autoMap: Record<string, string> = {};
+    
+    SYSTEM_FIELDS.forEach(field => {
+      const match = headers.find(header => 
+        header.toLowerCase().replace(/_/g, '').includes(field.key.toLowerCase())
+      );
+      if (match) {
+        autoMap[field.key] = match;
+      }
+    });
+    
+    return autoMap;
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const getProgress = () => {
     const required = SYSTEM_FIELDS.filter(f => f.required);
@@ -52,12 +61,30 @@ export function DataMapper({ onComplete, onCancel }: DataMapperProps) {
     return Math.round((mapped.length / required.length) * 100);
   };
 
+  const handleSubmit = async () => {
+    if (getProgress() < 100) return;
+    
+    setIsSubmitting(true);
+    try {
+      await onMappingSubmit(mappings);
+      onComplete();
+    } catch (error) {
+      console.error("Mapping submission failed:", error);
+      alert(error instanceof Error ? error.message : "Failed to import data");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const autoMappedCount = Object.keys(mappings).length;
+
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-serif font-bold">Map Your Columns</h2>
+          <h2 className="text-2xl font-serif font-bold" data-testid="text-mapping-title">Map Your Columns</h2>
           <p className="text-muted-foreground">Match your Excel headers to our analytics engine.</p>
+          <p className="text-xs text-muted-foreground mt-1">File: {fileName}</p>
         </div>
         <div className="text-right">
           <p className="text-sm font-medium mb-1">Mapping Health</p>
@@ -89,7 +116,7 @@ export function DataMapper({ onComplete, onCancel }: DataMapperProps) {
                   {mappings[field.key] && <Check className="h-3 w-3 text-green-500 ml-auto" />}
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  e.g. {field.key === 'revenue' ? '£1,250.00' : field.key === 'arrival' ? '2024-12-01' : 'Text'}
+                  {field.key === 'totalAmount' ? 'e.g. 1250.00' : field.key === 'checkInDate' ? 'e.g. 2024-12-01' : 'Text'}
                 </p>
               </div>
               
@@ -101,6 +128,7 @@ export function DataMapper({ onComplete, onCancel }: DataMapperProps) {
                 <Select 
                   value={mappings[field.key]} 
                   onValueChange={(val) => setMappings(prev => ({ ...prev, [field.key]: val }))}
+                  data-testid={`select-mapping-${field.key}`}
                 >
                   <SelectTrigger className={cn(
                     "w-full transition-all",
@@ -111,7 +139,7 @@ export function DataMapper({ onComplete, onCancel }: DataMapperProps) {
                     <SelectValue placeholder="Select column..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {DETECTED_HEADERS.map(header => (
+                    {headers.map(header => (
                       <SelectItem key={header} value={header}>{header}</SelectItem>
                     ))}
                   </SelectContent>
@@ -122,24 +150,29 @@ export function DataMapper({ onComplete, onCancel }: DataMapperProps) {
         </div>
       </GlassCard>
 
-      <div className="flex items-center justify-between p-4 bg-blue-500/5 border border-blue-500/10 rounded-lg mb-6">
-        <div className="flex items-center gap-3">
-          <AlertCircle className="h-5 w-5 text-blue-500" />
-          <div className="text-sm">
-            <p className="font-medium text-blue-600 dark:text-blue-400">Smart Mapping Active</p>
-            <p className="text-muted-foreground">We automatically matched 6 columns based on your header row.</p>
+      {autoMappedCount > 0 && (
+        <div className="flex items-center justify-between p-4 bg-blue-500/5 border border-blue-500/10 rounded-lg mb-6">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-blue-500" />
+            <div className="text-sm">
+              <p className="font-medium text-blue-600 dark:text-blue-400">Smart Mapping Active</p>
+              <p className="text-muted-foreground">We automatically matched {autoMappedCount} columns based on your header row.</p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="flex justify-end gap-3">
-        <Button variant="ghost" onClick={onCancel}>Back</Button>
+        <Button variant="ghost" onClick={onCancel} disabled={isSubmitting} data-testid="button-cancel-mapping">
+          Back
+        </Button>
         <Button 
           className="bg-primary hover:bg-primary/90 text-white min-w-[150px]"
-          onClick={onComplete}
-          disabled={getProgress() < 100}
+          onClick={handleSubmit}
+          disabled={getProgress() < 100 || isSubmitting}
+          data-testid="button-import-data"
         >
-          {getProgress() < 100 ? "Map Required Fields" : "Import Data"}
+          {isSubmitting ? "Importing..." : getProgress() < 100 ? "Map Required Fields" : "Import Data"}
         </Button>
       </div>
     </div>
