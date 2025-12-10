@@ -179,10 +179,10 @@ export class GuestExtractionService {
       guestType,
       travelType,
       clvScore: clvScore.toFixed(2),
-      churnRiskScore,
-      upsellPropensity,
-      retentionProbability,
-      ambassadorScore,
+      churnRiskScore: Math.round(churnRiskScore),
+      upsellPropensity: Math.round(upsellPropensity),
+      retentionProbability: Math.round(retentionProbability),
+      ambassadorScore: Math.round(ambassadorScore),
     };
   }
 
