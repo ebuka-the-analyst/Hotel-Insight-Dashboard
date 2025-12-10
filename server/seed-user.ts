@@ -12,7 +12,7 @@ async function seedUser() {
       email,
       passwordHash,
       firstName: "Emma",
-      lastName: "Manager",
+      lastName: "HR Admin",
     }).onConflictDoNothing();
 
     console.log("Test user created successfully!");

@@ -73,7 +73,7 @@ async function seedDefaultUser() {
         email,
         passwordHash,
         firstName: "Emma",
-        lastName: "Manager",
+        lastName: "HR Admin",
       }).onConflictDoNothing();
       log("Default user created: emma@demohotel.com");
     }
