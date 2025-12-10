@@ -108,7 +108,7 @@ export default function Landing() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="manager@demohotel.com"
+                    placeholder="emma@demohotel.com"
                     className="pl-10"
                     data-testid="input-email"
                   />

@@ -66,16 +66,16 @@ async function seedDefaultUser() {
   try {
     const existingUsers = await db.select().from(users).limit(1);
     if (existingUsers.length === 0) {
-      const email = "manager@demohotel.com";
-      const password = "manager123";
+      const email = "emma@demohotel.com";
+      const password = "demo1234";
       const passwordHash = hashPassword(password);
       await db.insert(users).values({
         email,
         passwordHash,
-        firstName: "Hotel",
+        firstName: "Emma",
         lastName: "Manager",
       }).onConflictDoNothing();
-      log("Default user created: manager@demohotel.com");
+      log("Default user created: emma@demohotel.com");
     }
   } catch (error) {
     console.error("Error seeding default user:", error);
