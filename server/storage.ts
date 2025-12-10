@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { bookings, datasets, analyticsCache, users, guests, type Booking, type InsertBooking, type Dataset, type InsertDataset, type AnalyticsCache, type InsertAnalyticsCache, type User, type UpsertUser, type Guest, type InsertGuest } from "@shared/schema";
+import { bookings, datasets, analyticsCache, users, guests, guestStays, type Booking, type InsertBooking, type Dataset, type InsertDataset, type AnalyticsCache, type InsertAnalyticsCache, type User, type UpsertUser, type Guest, type InsertGuest, type GuestStay } from "@shared/schema";
 import { eq, sql, and, gte, lte, desc, asc, ilike } from "drizzle-orm";
 
 export interface IStorage {
@@ -41,6 +41,7 @@ export interface IStorage {
   getTopGuestsByBookings(datasetId: string, limit?: number): Promise<Guest[]>;
   getGuestsByLifecycleStage(datasetId: string): Promise<{ stage: string; count: number }[]>;
   getGuestsByLoyaltyTier(datasetId: string): Promise<{ tier: string; count: number; avgRevenue: number }[]>;
+  getGuestStays(guestId: string): Promise<GuestStay[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -452,6 +453,12 @@ export class DatabaseStorage implements IStorage {
       count: Number(r.count),
       avgRevenue: Number(r.avgRevenue || 0)
     }));
+  }
+
+  async getGuestStays(guestId: string): Promise<GuestStay[]> {
+    return await db.select().from(guestStays)
+      .where(eq(guestStays.guestId, guestId))
+      .orderBy(desc(guestStays.arrivalDate));
   }
 }
 

@@ -10,6 +10,7 @@ import { autoMapColumns } from "./auto-mapper";
 import { calculateComprehensiveAnalytics } from "./analytics-service";
 import { setupEmailAuth, isAuthenticated, verifyPassword, hashPassword } from "./emailAuth";
 import { extractGuestsFromBookings, calculateGuestAnalytics } from "./guest-analytics-service";
+import { guestExtractionService } from "./guest-extraction-service";
 import { revenueInsightsService } from "./revenue-insights-service";
 import { aiPricingService } from "./ai-pricing-service";
 import { emailReportsService } from "./email-reports-service";
@@ -561,6 +562,57 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("Get guest analytics error:", error);
       res.status(500).json({ error: error.message || "Failed to get guest analytics" });
+    }
+  });
+
+  // Get comprehensive guest analytics v2 (using new extraction service)
+  app.get("/api/guests/analytics/v2", async (req, res) => {
+    try {
+      const datasetId = req.query.datasetId as string;
+      
+      if (!datasetId) {
+        return res.status(400).json({ error: "datasetId is required" });
+      }
+      
+      const analytics = await guestExtractionService.getGuestAnalytics(datasetId);
+      
+      if (!analytics) {
+        return res.status(404).json({ error: "No guest data available. Please extract guests first." });
+      }
+      
+      res.json(analytics);
+    } catch (error: any) {
+      console.error("Get guest analytics v2 error:", error);
+      res.status(500).json({ error: error.message || "Failed to get guest analytics" });
+    }
+  });
+
+  // Extract guests v2 (using new extraction service with stays)
+  app.post("/api/guests/extract/v2/:datasetId", isAuthenticated, async (req, res) => {
+    try {
+      const { datasetId } = req.params;
+      
+      const result = await guestExtractionService.extractGuestsFromDataset(datasetId);
+      
+      res.json({
+        success: true,
+        ...result,
+      });
+    } catch (error: any) {
+      console.error("Guest extraction v2 error:", error);
+      res.status(500).json({ error: error.message || "Failed to extract guests" });
+    }
+  });
+
+  // Get guest stays (booking history for a specific guest)
+  app.get("/api/guests/:id/stays", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const guestStays = await storage.getGuestStays(id);
+      res.json(guestStays);
+    } catch (error: any) {
+      console.error("Get guest stays error:", error);
+      res.status(500).json({ error: error.message || "Failed to get guest stays" });
     }
   });
 

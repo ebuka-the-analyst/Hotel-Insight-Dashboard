@@ -107,7 +107,7 @@ async function fetchGuests(datasetId: string, params: { limit?: number; offset?:
 }
 
 async function extractGuests(datasetId: string) {
-  const res = await fetch(`/api/guests/extract/${datasetId}`, { method: 'POST' });
+  const res = await fetch(`/api/guests/extract/v2/${datasetId}`, { method: 'POST' });
   if (!res.ok) throw new Error('Failed to extract guests');
   return res.json();
 }
