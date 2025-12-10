@@ -2,6 +2,9 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import { db } from "./db";
+import { users } from "@shared/schema";
+import { hashPassword } from "./emailAuth";
 
 const app = express();
 const httpServer = createServer(app);
@@ -59,7 +62,28 @@ app.use((req, res, next) => {
   next();
 });
 
+async function seedDefaultUser() {
+  try {
+    const existingUsers = await db.select().from(users).limit(1);
+    if (existingUsers.length === 0) {
+      const email = "manager@demohotel.com";
+      const password = "manager123";
+      const passwordHash = hashPassword(password);
+      await db.insert(users).values({
+        email,
+        passwordHash,
+        firstName: "Hotel",
+        lastName: "Manager",
+      }).onConflictDoNothing();
+      log("Default user created: manager@demohotel.com");
+    }
+  } catch (error) {
+    console.error("Error seeding default user:", error);
+  }
+}
+
 (async () => {
+  await seedDefaultUser();
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
