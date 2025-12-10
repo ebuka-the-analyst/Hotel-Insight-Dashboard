@@ -9,9 +9,9 @@ import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 const DEFAULT_PROFILE = {
-  name: "Alex Morgan",
-  position: "General Manager",
-  avatarUrl: ""
+  name: "Emma HR Admin",
+  position: "HR & Administration",
+  avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Emma&backgroundColor=ffdfbf&hairColor=2c1b18&skinColor=f8d7c4"
 };
 
 export function useProfile() {

@@ -23,9 +23,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatDistanceToNow } from "date-fns";
 
 const DEFAULT_PROFILE = {
-  name: "Alex Morgan",
-  position: "General Manager",
-  avatarUrl: "https://github.com/shadcn.png"
+  name: "Emma HR Admin",
+  position: "HR & Administration",
+  avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Emma&backgroundColor=ffdfbf&hairColor=2c1b18&skinColor=f8d7c4"
 };
 
 export function Header() {
