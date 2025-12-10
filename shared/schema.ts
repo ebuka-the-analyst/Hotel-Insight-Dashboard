@@ -166,6 +166,40 @@ export const guests = pgTable("guests", {
   index("IDX_guest_clv").on(table.clvScore),
 ]);
 
+// Guest Stays Table - individual stay records linked to guests
+export const guestStays = pgTable("guest_stays", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  guestId: varchar("guest_id").notNull(),
+  bookingId: varchar("booking_id").notNull(),
+  datasetId: varchar("dataset_id").notNull(),
+  
+  // Stay details
+  arrivalDate: date("arrival_date").notNull(),
+  departureDate: date("departure_date").notNull(),
+  roomType: text("room_type"),
+  channel: text("channel"),
+  marketSegment: text("market_segment"),
+  
+  // Financial
+  revenue: decimal("revenue", { precision: 10, scale: 2 }).notNull(),
+  adr: decimal("adr", { precision: 10, scale: 2 }),
+  
+  // Stay metrics
+  lengthOfStay: integer("length_of_stay").notNull(),
+  leadTime: integer("lead_time"),
+  adults: integer("adults").default(1),
+  children: integer("children").default(0),
+  
+  // Status
+  isCancelled: boolean("is_cancelled").default(false),
+  isWeekend: boolean("is_weekend").default(false),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("IDX_guest_stays_guest").on(table.guestId),
+  index("IDX_guest_stays_dataset").on(table.datasetId),
+]);
+
 // Revenue Insights Tables
 
 // Pricing Recommendations - AI-generated rate suggestions
@@ -346,6 +380,11 @@ export const insertGuestSchema = createInsertSchema(guests).omit({
   updatedAt: true,
 });
 
+export const insertGuestStaySchema = createInsertSchema(guestStays).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
@@ -358,6 +397,9 @@ export type InsertAnalyticsCache = z.infer<typeof insertAnalyticsCacheSchema>;
 
 export type Guest = typeof guests.$inferSelect;
 export type InsertGuest = z.infer<typeof insertGuestSchema>;
+
+export type GuestStay = typeof guestStays.$inferSelect;
+export type InsertGuestStay = z.infer<typeof insertGuestStaySchema>;
 
 export type PricingRecommendation = typeof pricingRecommendations.$inferSelect;
 export type InsertPricingRecommendation = z.infer<typeof insertPricingRecommendationSchema>;
