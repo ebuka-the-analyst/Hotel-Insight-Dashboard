@@ -12,7 +12,8 @@ import {
   Hexagon,
   Microscope,
   UserCheck,
-  TrendingUp
+  TrendingUp,
+  LogOut
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -42,16 +43,18 @@ export function Sidebar() {
         collapsed ? "w-[80px]" : "w-[280px]"
       )}
     >
-      <div className="h-24 flex items-center justify-center px-4 border-b border-sidebar-border/50 bg-white dark:bg-sidebar">
-        <img 
-          src={demoHotelLogo} 
-          alt="Demo Hotel" 
-          className={cn(
-            "transition-all duration-300 object-contain",
-            collapsed ? "w-10 h-10" : "w-36 h-18"
-          )}
-        />
-      </div>
+      <Link href="/">
+        <div className="h-24 flex items-center justify-center px-4 border-b border-sidebar-border/50 bg-white dark:bg-sidebar cursor-pointer hover:bg-muted/50 transition-colors">
+          <img 
+            src={demoHotelLogo} 
+            alt="Demo Hotel" 
+            className={cn(
+              "transition-all duration-300 object-contain",
+              collapsed ? "w-10 h-10" : "w-36 h-18"
+            )}
+          />
+        </div>
+      </Link>
 
       <nav className="flex-1 py-6 px-3 space-y-2 overflow-y-auto">
         {navItems.map((item) => {
@@ -91,8 +94,29 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="p-4 border-t border-sidebar-border/50 space-y-3">
+      <div className="p-4 border-t border-sidebar-border/50 space-y-2">
         <ThemeToggle collapsed={collapsed} />
+        <Button 
+          variant="ghost" 
+          size={collapsed ? "icon" : "default"}
+          className={cn(
+            "w-full hover:bg-red-500/10 hover:text-red-500 transition-all duration-200",
+            collapsed ? "justify-center" : "justify-start gap-3"
+          )}
+          onClick={async () => {
+            try {
+              await fetch('/api/auth/logout', { method: 'POST' });
+              localStorage.removeItem('userProfile');
+              window.location.href = '/';
+            } catch (error) {
+              console.error('Logout failed:', error);
+            }
+          }}
+          data-testid="button-logout"
+        >
+          <LogOut className="h-5 w-5" />
+          {!collapsed && <span className="font-medium">Log Out</span>}
+        </Button>
         <Button 
           variant="ghost" 
           size="icon" 
