@@ -106,7 +106,6 @@ export function Sidebar() {
           onClick={async () => {
             try {
               await fetch('/api/auth/logout', { method: 'POST' });
-              localStorage.removeItem('userProfile');
               window.location.href = '/';
             } catch (error) {
               console.error('Logout failed:', error);

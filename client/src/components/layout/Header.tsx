@@ -22,10 +22,12 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatDistanceToNow } from "date-fns";
 
+import femaleAvatar from "@assets/female-icon_1765376043532.jpg";
+
 const DEFAULT_PROFILE = {
   name: "Emma HR Admin",
   position: "HR & Administration",
-  avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Emma&backgroundColor=ffdfbf&hairColor=2c1b18&skinColor=f8d7c4"
+  avatarUrl: femaleAvatar
 };
 
 export function Header() {
