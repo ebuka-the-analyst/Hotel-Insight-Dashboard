@@ -101,12 +101,12 @@ export default function Dashboard() {
   const trends = trendsData?.daily || [];
 
   const occupancyData = trends.map(t => ({
-    day: new Date(t.date).toLocaleDateString('en-US', { weekday: 'short' }),
+    day: new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
     value: t.bookings * 10,
   }));
 
   const revenueData = trends.map(t => ({
-    day: new Date(t.date).toLocaleDateString('en-US', { weekday: 'short' }),
+    day: new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
     value: t.revenue,
   }));
 
