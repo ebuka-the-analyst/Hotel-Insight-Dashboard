@@ -1,12 +1,45 @@
 import { Layout } from "@/components/layout/Layout";
 import { GlassCard } from "@/components/ui/glass-card";
 import { AgentAvatar } from "@/components/ui/agent-avatar";
-import { Bot, Send, Sparkles } from "lucide-react";
+import { Bot, Send, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { queryInsights } from "@/lib/api-client";
+
+interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
 
 export default function Agents() {
   const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSend = async () => {
+    if (!message.trim() || isLoading) return;
+    
+    const userMessage = message.trim();
+    setMessage("");
+    setMessages(prev => [...prev, { role: "user", content: userMessage }]);
+    setIsLoading(true);
+    
+    try {
+      const response = await queryInsights(userMessage);
+      setMessages(prev => [...prev, { role: "assistant", content: response.answer }]);
+    } catch (error) {
+      setMessages(prev => [...prev, { role: "assistant", content: "Sorry, I couldn't process your question. Please try again." }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
 
   return (
     <Layout>
@@ -42,6 +75,29 @@ export default function Agents() {
                   </p>
                 </div>
               </div>
+              
+              {messages.map((msg, index) => (
+                <div key={index} className={`flex items-start gap-3 p-4 rounded-xl ${msg.role === "user" ? "bg-primary/10" : "bg-muted/30"}`}>
+                  {msg.role === "assistant" ? (
+                    <AgentAvatar name="Nova" className="w-8 h-8" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-gray-700">U</div>
+                  )}
+                  <div className="flex-1">
+                    <p className="text-sm text-foreground/80">{msg.content}</p>
+                  </div>
+                </div>
+              ))}
+              
+              {isLoading && (
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-muted/30">
+                  <AgentAvatar name="Nova" className="w-8 h-8" />
+                  <div className="flex-1 flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                    <span className="text-sm text-muted-foreground">Thinking...</span>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3">
@@ -49,12 +105,19 @@ export default function Agents() {
                 type="text"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={handleKeyPress}
                 placeholder="Ask me anything about your hotel..."
                 className="flex-1 px-4 py-3 rounded-xl border border-border bg-background/50 focus:outline-none focus:ring-2 focus:ring-primary/50"
                 data-testid="input-chat-message"
+                disabled={isLoading}
               />
-              <Button className="bg-primary hover:bg-primary/90 text-white px-6" data-testid="button-send-message">
-                <Send className="h-4 w-4" />
+              <Button 
+                onClick={handleSend}
+                disabled={isLoading || !message.trim()}
+                className="bg-primary hover:bg-primary/90 text-white px-6" 
+                data-testid="button-send-message"
+              >
+                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               </Button>
             </div>
           </GlassCard>
