@@ -42,13 +42,13 @@ export function Sidebar() {
         collapsed ? "w-[80px]" : "w-[280px]"
       )}
     >
-      <div className="h-28 flex items-center justify-center px-4 border-b border-sidebar-border/50 bg-white dark:bg-sidebar">
+      <div className="h-36 flex items-center justify-center px-4 border-b border-sidebar-border/50 bg-white dark:bg-sidebar">
         <img 
           src={demoHotelLogo} 
           alt="Demo Hotel" 
           className={cn(
             "transition-all duration-300 object-contain",
-            collapsed ? "w-12 h-12" : "w-52 h-20"
+            collapsed ? "w-16 h-16" : "w-64 h-28"
           )}
         />
       </div>
