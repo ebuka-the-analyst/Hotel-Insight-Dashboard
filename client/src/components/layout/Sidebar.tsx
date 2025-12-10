@@ -17,7 +17,7 @@ import {
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import demoHotelLogo from "@assets/generated_images/demo_hotel_logo_design.png";
+import demoHotelLogo from "@assets/image_1765373799732.png";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Overview", href: "/" },
