@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TrendingUp, Users, Shield, ArrowRight, LineChart, PieChart, Mail, Lock, Loader2 } from "lucide-react";
 import { useState } from "react";
-import hyattLogo from "@assets/Hyatt_Place_logo.svg_1765284683778.png";
+import demoHotelLogo from "@assets/generated_images/demo_hotel_logo_design.png";
 
 export default function Landing() {
   const [email, setEmail] = useState("");
@@ -46,7 +46,7 @@ export default function Landing() {
       <nav className="border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={hyattLogo} alt="Hyatt Place" className="h-14 object-contain" />
+            <img src={demoHotelLogo} alt="Demo Hotel" className="h-14 object-contain" />
           </div>
           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium">
             <Shield className="h-4 w-4" />
@@ -108,7 +108,7 @@ export default function Landing() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="manager@hyattplace.com"
+                    placeholder="manager@demohotel.com"
                     className="pl-10"
                     data-testid="input-email"
                   />
@@ -154,7 +154,7 @@ export default function Landing() {
         <div className="mt-16">
           <GlassCard className="p-8 text-center">
             <Users className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h2 className="text-2xl font-serif font-bold mb-3">Built for Hyatt Place Managers</h2>
+            <h2 className="text-2xl font-serif font-bold mb-3">Built for Demo Hotel Managers</h2>
             <p className="text-muted-foreground max-w-xl mx-auto">
               This analytics dashboard is designed specifically for hotel management teams. 
               Sign in with your credentials to access your personalized insights.
@@ -165,7 +165,7 @@ export default function Landing() {
 
       <footer className="border-t border-border mt-16 py-8">
         <div className="max-w-7xl mx-auto px-6 text-center text-sm text-muted-foreground">
-          <p>Hyatt Place Analytics Dashboard</p>
+          <p>Demo Hotel Analytics Dashboard</p>
         </div>
       </footer>
     </div>

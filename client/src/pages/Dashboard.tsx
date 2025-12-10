@@ -204,7 +204,7 @@ export default function Dashboard() {
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
             <p className="text-muted-foreground">
-              Here's your executive summary for <span className="font-semibold text-foreground">{selectedDataset?.name || "Hyatt Place"}</span>.
+              Here's your executive summary for <span className="font-semibold text-foreground">{selectedDataset?.name || "Demo Hotel"}</span>.
             </p>
             <DateRangeFilter value={dateRange} onChange={setDateRange} />
           </div>

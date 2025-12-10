@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import hyattLogo from "@assets/Hyatt_Place_logo.svg_1765284683778.png";
+import demoHotelLogo from "@assets/generated_images/demo_hotel_logo_design.png";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Overview", href: "/" },
@@ -43,8 +43,8 @@ export function Sidebar() {
     >
       <div className="h-24 flex items-center justify-center px-4 border-b border-sidebar-border/50 bg-white dark:bg-sidebar">
         <img 
-          src={hyattLogo} 
-          alt="Hyatt Place" 
+          src={demoHotelLogo} 
+          alt="Demo Hotel" 
           className={cn(
             "transition-all duration-300 object-contain",
             collapsed ? "w-10 h-10" : "w-40 h-16"

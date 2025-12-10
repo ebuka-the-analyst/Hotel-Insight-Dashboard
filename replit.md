@@ -4,7 +4,7 @@
 
 AutoInsight is a hotel analytics dashboard application that enables hotel managers to upload booking data, visualize performance metrics, and gain insights through advanced analytics. The application processes hotel booking datasets (Excel/CSV files), automatically maps columns to system fields, and provides comprehensive dashboards with KPIs, trends, and channel performance analysis.
 
-The platform targets hotel properties (currently branded for Hyatt Place) and offers features including data upload with intelligent column mapping, real-time analytics dashboards, research-grade visualizations (seasonality, cancellation risk matrices), and AI-powered chat assistance for data queries.
+The platform targets hotel properties (currently branded for Demo Hotel) and offers features including data upload with intelligent column mapping, real-time analytics dashboards, research-grade visualizations (seasonality, cancellation risk matrices), and AI-powered chat assistance for data queries.
 
 ## User Preferences
 
