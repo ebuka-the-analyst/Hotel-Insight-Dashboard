@@ -180,6 +180,18 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
+  
+  :focus-visible {
+    @apply outline-2 outline-offset-4 outline-primary/70 ring-0;
+  }
+  
+  button, a, input, select, textarea {
+    @apply transition-all duration-200;
+  }
+  
+  button:focus-visible, a:focus-visible {
+    @apply ring-2 ring-primary/50 ring-offset-2 ring-offset-background;
+  }
 }
 
 @layer utilities {
@@ -208,5 +220,26 @@
   
   .bg-gradient-brand {
     background: linear-gradient(135deg, #4B77A9 0%, #2a4d75 100%);
+  }
+  
+  .calm-transition {
+    @apply transition-all duration-300 ease-out;
+  }
+  
+  .focus-card {
+    @apply p-6 rounded-xl border-2 border-transparent hover:border-primary/20 transition-all duration-200;
+  }
+  
+  .smooth-scroll {
+    scroll-behavior: smooth;
+  }
+  
+  .readable-text {
+    letter-spacing: 0.01em;
+    line-height: 1.7;
+  }
+  
+  .clean-spacing > * + * {
+    margin-top: 1.5rem;
   }
 }

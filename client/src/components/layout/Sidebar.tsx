@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import demoHotelLogo from "@assets/generated_images/demo_hotel_logo_design.png";
 
 const navItems = [
@@ -41,13 +42,13 @@ export function Sidebar() {
         collapsed ? "w-[80px]" : "w-[280px]"
       )}
     >
-      <div className="h-24 flex items-center justify-center px-4 border-b border-sidebar-border/50 bg-white dark:bg-sidebar">
+      <div className="h-28 flex items-center justify-center px-4 border-b border-sidebar-border/50 bg-white dark:bg-sidebar">
         <img 
           src={demoHotelLogo} 
           alt="Demo Hotel" 
           className={cn(
             "transition-all duration-300 object-contain",
-            collapsed ? "w-10 h-10" : "w-40 h-16"
+            collapsed ? "w-12 h-12" : "w-52 h-20"
           )}
         />
       </div>
@@ -90,12 +91,14 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="p-4 border-t border-sidebar-border/50">
+      <div className="p-4 border-t border-sidebar-border/50 space-y-3">
+        <ThemeToggle collapsed={collapsed} />
         <Button 
           variant="ghost" 
           size="icon" 
-          className="mt-4 w-full flex items-center justify-center hover:bg-sidebar-accent"
+          className="w-full flex items-center justify-center hover:bg-sidebar-accent"
           onClick={() => setCollapsed(!collapsed)}
+          data-testid="button-sidebar-collapse"
         >
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </Button>
