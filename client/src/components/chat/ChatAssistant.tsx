@@ -113,7 +113,7 @@ export function ChatAssistant() {
         <div 
           className={cn(
             "fixed bottom-6 right-6 z-50 transition-all duration-300 shadow-2xl rounded-2xl overflow-hidden flex flex-col bg-background/95 backdrop-blur-md border border-border",
-            isExpanded ? "w-[600px] h-[80vh]" : "w-[380px] h-[600px]"
+            isExpanded ? "w-[600px] h-[80vh] max-h-[calc(100vh-3rem)]" : "w-[380px] h-[600px] max-h-[calc(100vh-3rem)]"
           )}
         >
           {/* Header */}
